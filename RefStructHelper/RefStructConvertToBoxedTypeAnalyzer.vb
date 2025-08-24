@@ -49,6 +49,7 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeAssignment(ctx, restrictedTypeCache), SyntaxKind.SimpleAssignmentStatement)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeArgument(ctx, restrictedTypeCache), SyntaxKind.SimpleArgument)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeArrayCreation(ctx, restrictedTypeCache), SyntaxKind.ArrayCreationExpression)
+        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeAssignment(ctx, restrictedTypeCache), SyntaxKind.SimpleAssignmentStatement)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeReturnStatement(ctx, restrictedTypeCache), SyntaxKind.ReturnStatement)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeLocalDeclaration(ctx, restrictedTypeCache), SyntaxKind.LocalDeclarationStatement)
     End Sub
@@ -82,12 +83,34 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
-        ' Get the type of the expression being assigned
-        Dim expressionType = semanticModel.GetTypeInfo(assignmentNode.Right, cancellationToken).Type
-        Dim targetType = semanticModel.GetTypeInfo(assignmentNode.Left, cancellationToken).Type
+        ' Check if the right side is an array literal
+        If TypeOf assignmentNode.Right Is CollectionInitializerSyntax Then
+            ' This is an implicit array initialization like: Dim objArray As Object() = {span, "hello", 42}
+            Dim arrayInitializer = DirectCast(assignmentNode.Right, CollectionInitializerSyntax)
+            Dim targetType = semanticModel.GetTypeInfo(assignmentNode.Left, cancellationToken).Type
 
-        ' Check for restricted type conversion to Object or ValueType
-        CheckRestrictedConversion(expressionType, targetType, assignmentNode, context, restrictedTypeCache)
+            ' Check if target type is array of Object or ValueType
+            If targetType IsNot Nothing AndAlso targetType.Kind = SymbolKind.ArrayType Then
+                Dim elementType = DirectCast(targetType, IArrayTypeSymbol).ElementType
+                If IsObjectType(elementType) OrElse IsValueTypeType(elementType) Then
+                    ' Check each initializer expression
+                    For Each expr In arrayInitializer.Initializers
+                        Dim exprType As ITypeSymbol = semanticModel.GetTypeInfo(expr, cancellationToken).Type
+                        If exprType IsNot Nothing AndAlso IsRestrictedType(exprType, restrictedTypeCache) Then
+                            Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, expr.GetLocation(), exprType.Name)
+                            context.ReportDiagnostic(diagnostic)
+                        End If
+                    Next
+                End If
+            End If
+        Else
+            ' Regular assignment
+            Dim expressionType = semanticModel.GetTypeInfo(assignmentNode.Right, cancellationToken).Type
+            Dim targetType = semanticModel.GetTypeInfo(assignmentNode.Left, cancellationToken).Type
+
+            ' Check for restricted type conversion to Object or ValueType
+            CheckRestrictedConversion(expressionType, targetType, assignmentNode.Right, context, restrictedTypeCache)
+        End If
     End Sub
 
     Private Sub AnalyzeArgument(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
@@ -116,14 +139,13 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
-        ' Get the array type
+        ' Get the array type from the semantic model
         Dim arrayType = semanticModel.GetTypeInfo(arrayNode, cancellationToken).Type
         If arrayType Is Nothing OrElse arrayType.Kind <> SymbolKind.ArrayType Then
             Return
         End If
 
         Dim elementType = DirectCast(arrayType, IArrayTypeSymbol).ElementType
-
         ' Check if the element type is Object or ValueType
         If IsObjectType(elementType) OrElse IsValueTypeType(elementType) Then
             ' Check if any initializer expressions are restricted types
@@ -183,11 +205,39 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
                     variableType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
                 End If
 
-                ' Get the type of the initializer expression
-                Dim initializerType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
+                ' Check if this is an array initialization with collection initializer
+                If TypeOf declarator.Initializer.Value Is CollectionInitializerSyntax Then
+                    ' This handles: Dim objArray As Object() = {span, "hello", 42}
+                    Dim arrayInitializer = DirectCast(declarator.Initializer.Value, CollectionInitializerSyntax)
 
-                ' Check for restricted type conversion to Object or ValueType
-                CheckRestrictedConversion(initializerType, variableType, declarator.Initializer.Value, context, restrictedTypeCache)
+                    ' Get the declared variable type
+                    Dim declaredType As ITypeSymbol = Nothing
+                    If declarator.AsClause IsNot Nothing Then
+                        declaredType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
+                    End If
+
+                    ' Check if declared type is array of Object or ValueType
+                    If declaredType IsNot Nothing AndAlso declaredType.Kind = SymbolKind.ArrayType Then
+                        Dim elementType = DirectCast(declaredType, IArrayTypeSymbol).ElementType
+                        If IsObjectType(elementType) OrElse IsValueTypeType(elementType) Then
+                            ' Check each initializer expression
+                            For Each expr In arrayInitializer.Initializers
+                                Dim exprType As ITypeSymbol = semanticModel.GetTypeInfo(expr, cancellationToken).Type
+                                If exprType IsNot Nothing AndAlso IsRestrictedType(exprType, restrictedTypeCache) Then
+                                    Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, expr.GetLocation(), exprType.Name)
+                                    context.ReportDiagnostic(diagnostic)
+                                End If
+                            Next
+                        End If
+                    End If
+                Else
+                    ' Regular initialization
+                    ' Get the type of the initializer expression
+                    Dim initializerType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
+
+                    ' Check for restricted type conversion to Object or ValueType
+                    CheckRestrictedConversion(initializerType, variableType, declarator.Initializer.Value, context, restrictedTypeCache)
+                End If
             End If
         Next
     End Sub

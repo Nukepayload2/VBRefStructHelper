@@ -152,6 +152,82 @@ End Class
         Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
     End Sub
 
+    <TestMethod>
+    Public Sub TestSpanInObjectArray2()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim span As Span(Of Integer) = arr.AsSpan()
+        Dim objArray = New Object() {span, ""hello"", 42}  ' 这应该触发 BCX31394
+    End Sub
+End Class
+"
+        Dim diagnostics = GetDiagnostics(source)
+        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+    End Sub
+
+    <TestMethod>
+    Public Sub TestSpanInObjectArray3()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim span As Span(Of Integer) = arr.AsSpan()
+        Dim objArray = {span, ""hello"", 42}  ' 这应该触发 BCX31394
+    End Sub
+End Class
+"
+        Dim diagnostics = GetDiagnostics(source)
+        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+    End Sub
+
+    <TestMethod>
+    Public Sub TestSpanInObjectList()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim span As Span(Of Integer) = arr.AsSpan()
+        Dim objList4 = New List(Of Object) From {span, ""hello"", 42}  ' 这应该触发 BCX31394
+    End Sub
+End Class
+"
+        Dim diagnostics = GetDiagnostics(source)
+        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+    End Sub
+
+    <TestMethod>
+    Public Sub TestSpanInObjectList2()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim span As Span(Of Integer) = arr.AsSpan()
+        Dim objList4 As New List(Of Object) From {span, ""hello"", 42}  ' 这应该触发 BCX31394
+    End Sub
+End Class
+"
+        Dim diagnostics = GetDiagnostics(source)
+        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+    End Sub
+
     ' 测试6: 从函数返回 Span 作为 Object
     <TestMethod>
     Public Sub TestReturnSpanAsObject()
@@ -205,6 +281,25 @@ Class TestClass
         Dim arr As Integer() = {1, 2, 3, 4, 5}
         Dim span As Span(Of Integer) = arr.AsSpan()
         Dim valueType As ValueType = CType(span, ValueType)  ' 这应该触发 BCX31394
+    End Sub
+End Class
+"
+        Dim diagnostics = GetDiagnostics(source)
+        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+    End Sub
+
+    <TestMethod>
+    Public Sub TestCObjSpan()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim span As Span(Of Integer) = arr.AsSpan()
+        Dim valueType = CObj(span)  ' 这应该触发 BCX31394
     End Sub
 End Class
 "
