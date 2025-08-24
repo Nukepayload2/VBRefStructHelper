@@ -233,7 +233,7 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
             ' Check if there's an initializer
             If declarator.Initializer IsNot Nothing Then
                 ' Get the type of the variable being declared
-                Dim variableType As ITypeSymbol = Nothing
+                Dim variableType As ITypeSymbol
                 If declarator.AsClause IsNot Nothing Then
                     ' Get the declared type from AsClause
                     variableType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
@@ -272,57 +272,30 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
 
         Dim parent = argNode.Parent
         While parent IsNot Nothing
-            If TypeOf parent Is InvocationExpressionSyntax Then
-                Dim invocation = DirectCast(parent, InvocationExpressionSyntax)
-                Dim symbolInfo = semanticModel.GetSymbolInfo(invocation, cancellationToken)
-                If symbolInfo.Symbol IsNot Nothing Then
-                    Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
-                    If methodSymbol IsNot Nothing Then
-                        ' Find the argument index
-                        If invocation.ArgumentList Is Nothing Then
-                            parent = parent.Parent
-                            Continue While
-                        End If
-                        Dim args = invocation.ArgumentList.Arguments
-                        Dim argIndex As Integer = -1
-                        For i As Integer = 0 To args.Count - 1
-                            If args(i) Is argNode Then
-                                argIndex = i
-                                Exit For
-                            End If
-                        Next
+            Dim argumentList As ArgumentListSyntax = Nothing
+            Dim methodSymbol As IMethodSymbol = Nothing
 
-                        If argIndex >= 0 AndAlso argIndex < methodSymbol.Parameters.Length Then
-                            Return methodSymbol.Parameters(argIndex)
-                        End If
-                    End If
-                End If
-            ElseIf TypeOf parent Is ObjectCreationExpressionSyntax Then
-                Dim creation = DirectCast(parent, ObjectCreationExpressionSyntax)
-                Dim symbolInfo = semanticModel.GetSymbolInfo(creation, cancellationToken)
-                If symbolInfo.Symbol IsNot Nothing Then
-                    Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
-                    If methodSymbol IsNot Nothing Then
-                        ' Find the argument index
-                        If creation.ArgumentList Is Nothing Then
-                            parent = parent.Parent
-                            Continue While
-                        End If
-                        Dim args = creation.ArgumentList.Arguments
-                        Dim argIndex As Integer = -1
-                        For i As Integer = 0 To args.Count - 1
-                            If args(i) Is argNode Then
-                                argIndex = i
-                                Exit For
-                            End If
-                        Next
+            Dim symbolInfo = semanticModel.GetSymbolInfo(parent, cancellationToken)
+            If symbolInfo.Symbol IsNot Nothing Then
+                methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
+                argumentList = If(TryCast(parent, InvocationExpressionSyntax)?.ArgumentList, TryCast(parent, ObjectCreationExpressionSyntax)?.ArgumentList)
+            End If
 
-                        If argIndex >= 0 AndAlso argIndex < methodSymbol.Parameters.Length Then
-                            Return methodSymbol.Parameters(argIndex)
-                        End If
+            If argumentList IsNot Nothing AndAlso methodSymbol IsNot Nothing Then
+                Dim args = argumentList.Arguments
+                Dim argIndex As Integer = -1
+                For i As Integer = 0 To args.Count - 1
+                    If args(i) Is argNode Then
+                        argIndex = i
+                        Exit For
                     End If
+                Next
+
+                If argIndex >= 0 AndAlso argIndex < methodSymbol.Parameters.Length Then
+                    Return methodSymbol.Parameters(argIndex)
                 End If
             End If
+
             parent = parent.Parent
         End While
 
