@@ -74,6 +74,11 @@ RefStructHelper.Tests/           # 测试项目
 </Project>
 ```
 
+### OptionRestrict 的用法
+- 默认关闭检查
+- Off - 关闭检查
+- On - 启用检查并视为错误
+
 ## 诊断规则
 
 ### BCX31394 - 受限类型装箱检测
