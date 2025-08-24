@@ -18,8 +18,7 @@ Public Class RefStructConvertToBoxedType
         Dim vt3 As ValueType = TryCast(span, ValueType)  ' 这应该触发 BCX31394
         Dim vt4 As ValueType = DirectCast(span, ValueType)  ' 这应该触发 BCX31394
 
-        TestMethodTakingObject(span)  ' 这应该触发 BCX31394
-        TestMethodTakingValueType(span)  ' 这应该触发 BCX31394
+        Dim sth As New Something With {.SomeValue = span}
     End Sub
 
     ' 辅助方法
@@ -33,9 +32,11 @@ Public Class RefStructConvertToBoxedType
     End Sub
 
     Private Class Something
-        Sub New(arg As Object)
-
+        Sub New()
         End Sub
+        Sub New(arg As Object)
+        End Sub
+        Public Property SomeValue As Object
     End Class
 
     Private Event SomeEvent(arg As Object)

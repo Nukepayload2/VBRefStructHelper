@@ -22,9 +22,11 @@ Class TestClass
     End Sub
 
     Private Class Something
-        Sub New(arg As Object)
-
+        Sub New()
         End Sub
+        Sub New(arg As Object)
+        End Sub
+        Public Property SomeValue As Object
     End Class
 
     Private Event SomeEvent(arg As Object)
@@ -43,70 +45,70 @@ End Class
 
     <TestMethod>
     Public Sub TestSpanToObjectAssignment()
-        Dim snippetContent = "Dim obj As Object = span ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim obj As Object = span"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' 使用 CType 转换 Span 到 Object
     <TestMethod>
     Public Sub TestCTypeSpanToObject()
-        Dim snippetContent = "Dim obj As Object = CType(span, Object)  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim obj As Object = CType(span, Object)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' 使用 DirectCast 转换 Span 到 Object
     <TestMethod>
     Public Sub TestDirectCastSpanToObject()
-        Dim snippetContent = "Dim obj As Object = DirectCast(span, Object)  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim obj As Object = DirectCast(span, Object)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' 将 Span 赋值给 ValueType 变量
     <TestMethod>
     Public Sub TestSpanToValueTypeAssignment()
-        Dim snippetContent = "Dim valueType As ValueType = span  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim valueType As ValueType = span"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' 使用 CType 转换 Span 到 ValueType
     <TestMethod>
     Public Sub TestCTypeSpanToValueType()
-        Dim snippetContent = "Dim valueType As ValueType = CType(span, ValueType)  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim valueType As ValueType = CType(span, ValueType)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' 使用 CObj 转换 Span 到 Object
     <TestMethod>
     Public Sub TestCObjSpanToObject()
-        Dim snippetContent = "Dim obj = CObj(span)  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim obj = CObj(span)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' 使用 TryCast 转换 Span 到 Object
     <TestMethod>
     Public Sub TestTryCastSpanToObject()
-        Dim snippetContent = "Dim obj As Object = TryCast(span, Object)  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim obj As Object = TryCast(span, Object)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' 使用 TryCast 转换 Span 到 ValueType
     <TestMethod>
     Public Sub TestTryCastSpanToValueType()
-        Dim snippetContent = "Dim valueType As ValueType = TryCast(span, ValueType)  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim valueType As ValueType = TryCast(span, ValueType)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' 使用 DirectCast 转换 Span 到 ValueType
     <TestMethod>
     Public Sub TestDirectCastSpanToValueType()
-        Dim snippetContent = "Dim valueType As ValueType = DirectCast(span, ValueType)  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim valueType As ValueType = DirectCast(span, ValueType)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' 将 Span 赋值给 ValueType 变量 (直接赋值)
     <TestMethod>
     Public Sub TestSpanToValueTypeAssignmentDirect()
-        Dim snippetContent = "Dim valueType As ValueType = span  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim valueType As ValueType = span"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
@@ -126,19 +128,25 @@ End Class
 
     <TestMethod>
     Public Sub TestEventRaiseWithSpan()
-        Dim snippetContent = "RaiseEvent SomeEvent(span)  ' 这应该触发 BCX31394"
+        Dim snippetContent = "RaiseEvent SomeEvent(span)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     <TestMethod>
     Public Sub TestNewSomethingWithSpan()
-        Dim snippetContent = "Dim x As New Something(span)  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim x As New Something(span)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     <TestMethod>
     Public Sub TestNewSomethingWithSpanImplicit()
-        Dim snippetContent = "Dim y = New Something(span)  ' 这应该触发 BCX31394"
+        Dim snippetContent = "Dim y = New Something(span)"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestNewSomethingWithSpanWithExpr()
+        Dim snippetContent = "Dim sth As New Something With {.SomeValue = span}"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
@@ -154,7 +162,7 @@ Class TestClass
     Function TestReturnSpanAsObject() As Object
         Dim arr As Integer() = {1, 2, 3, 4, 5}
         Dim span As Span(Of Integer) = arr.AsSpan()
-        Return span  ' 这应该触发 BCX31394
+        Return span
     End Function
 End Class
 "
@@ -175,7 +183,7 @@ Class TestClass
     Function TestReturnSpanAsValueType() As ValueType
         Dim arr As Integer() = {1, 2, 3, 4, 5}
         Dim span As Span(Of Integer) = arr.AsSpan()
-        Return span  ' 这应该触发 BCX31394
+        Return span
     End Function
 End Class
 "
