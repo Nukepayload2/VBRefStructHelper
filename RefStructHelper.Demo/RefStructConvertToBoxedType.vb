@@ -33,12 +33,12 @@ Public Class RefStructConvertToBoxedType
     End Sub
 
     Private Class Something
-        Sub New(arg As Span(Of Integer))
+        Sub New(arg As Object)
 
         End Sub
     End Class
 
-    Private Event SomeEvent(arg As Span(Of Integer))
+    Private Event SomeEvent(arg As Object)
 
     Sub WrongUsagesInvoke()
         Dim arr As Integer() = {1, 2, 3, 4, 5}
