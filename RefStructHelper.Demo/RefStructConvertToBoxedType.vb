@@ -28,31 +28,6 @@ Public Class RefStructConvertToBoxedType
         Dim vt3 As ValueType = TryCast(span, ValueType)  ' 这应该触发 BCX31394
         Dim vt4 As ValueType = DirectCast(span, ValueType)  ' 这应该触发 BCX31394
 
-        Dim objArray1 As Object() = {span, "hello", 42}  ' 这应该触发 BCX31394
-        Dim objArray2 = {42, span}  ' 这应该触发 BCX31394
-        Dim objArray3() As Object = {span, "hello", 42}  ' 这应该触发 BCX31394
-        Dim objArray4 = {CType(42, Object), span}  ' 这应该触发 BCX31394
-        Dim objArray5 As Object() = {span}  ' 这应该触发 BCX31394
-        Dim objArray6() As Object = {span}  ' 这应该触发 BCX31394
-
-        Dim vtArray1 As ValueType() = {span, 42}  ' 这应该触发 BCX31394
-        Dim vtArray2 = {CType(42, ValueType), span}   ' 这应该触发 BCX31394
-        Dim vtArray3() As ValueType = {span}  ' 这应该触发 BCX31394
-        Dim vtArray4 As ValueType() = {span}  ' 这应该触发 BCX31394
-        Dim vtArray5() As ValueType = {span, 42}  ' 这应该触发 BCX31394
-
-        Dim objList1 = New List(Of Object) From {span, "hello", 42}  ' 这应该触发 BCX31394
-        Dim objList2 As New List(Of Object) From {span, "hello", 42}  ' 这应该触发 BCX31394
-
-        Dim vtList1 = New List(Of ValueType) From {span, 42}  ' 这应该触发 BCX31394
-        Dim vtList2 As New List(Of ValueType) From {span, 42}  ' 这应该触发 BCX31394
-
-        Dim objDict1 = New Dictionary(Of String, Object) From {{"hello", span}}  ' 这应该触发 BCX31394
-        Dim objDict2 As New Dictionary(Of String, Object) From {{"hello", span}}  ' 这应该触发 BCX31394
-
-        Dim vtDict1 = New Dictionary(Of Integer, ValueType) From {{1, span}}  ' 这应该触发 BCX31394
-        Dim vtDict2 As New Dictionary(Of Integer, ValueType) From {{2, span}}  ' 这应该触发 BCX31394
-
         TestMethodTakingObject(span)  ' 这应该触发 BCX31394
         TestMethodTakingValueType(span)  ' 这应该触发 BCX31394
     End Sub

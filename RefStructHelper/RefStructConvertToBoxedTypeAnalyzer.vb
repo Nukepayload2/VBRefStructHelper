@@ -196,9 +196,26 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
             ' Check if there's an initializer
             If declarator.Initializer IsNot Nothing Then
                 ' Get the type of the variable being declared
-                Dim variableType As ITypeSymbol
+                Dim variableType As ITypeSymbol = Nothing
                 If declarator.AsClause IsNot Nothing Then
+                    ' Get the declared type from AsClause
                     variableType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
+
+                    ' Check if this is an array type where the rank is specified after the identifier
+                    ' For syntax like: Dim objArray() As Object = {span}
+                    ' The ArrayRankSpecifierSyntax is in the ModifiedIdentifier, not in the AsClause.Type
+                    If variableType IsNot Nothing AndAlso declarator.Names.Any() Then
+                        Dim firstIdentifier = declarator.Names(0)
+                        If firstIdentifier.ArrayRankSpecifiers.Any() Then
+                            ' This is an array declaration where rank is specified after identifier
+                            ' The variableType is actually the element type, not the array type
+                            ' We need to get the actual array type from the semantic model using the entire declarator
+                            Dim declaredSymbol = semanticModel.GetDeclaredSymbol(declarator.Names(0), cancellationToken)
+                            If declaredSymbol IsNot Nothing AndAlso TypeOf declaredSymbol Is ILocalSymbol Then
+                                variableType = DirectCast(declaredSymbol, ILocalSymbol).Type
+                            End If
+                        End If
+                    End If
                 Else
                     ' Infer the type from the initializer
                     variableType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
@@ -209,10 +226,22 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
                     ' This handles: Dim objArray As Object() = {span, "hello", 42}
                     Dim arrayInitializer = DirectCast(declarator.Initializer.Value, CollectionInitializerSyntax)
 
-                    ' Get the declared variable type
+                    ' Get the declared variable type with proper array handling
                     Dim declaredType As ITypeSymbol = Nothing
                     If declarator.AsClause IsNot Nothing Then
                         declaredType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
+
+                        ' Handle array rank specified after identifier
+                        If declaredType IsNot Nothing AndAlso declarator.Names.Any() Then
+                            Dim firstIdentifier = declarator.Names(0)
+                            If firstIdentifier.ArrayRankSpecifiers.Any() Then
+                                ' Get the actual declared type including array information
+                                Dim declaredSymbol = semanticModel.GetDeclaredSymbol(declarator.Names(0), cancellationToken)
+                                If declaredSymbol IsNot Nothing AndAlso TypeOf declaredSymbol Is ILocalSymbol Then
+                                    declaredType = DirectCast(declaredSymbol, ILocalSymbol).Type
+                                End If
+                            End If
+                        End If
                     End If
 
                     ' Check if declared type is array of Object or ValueType
