@@ -53,6 +53,7 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeLocalDeclaration(ctx, restrictedTypeCache), SyntaxKind.LocalDeclarationStatement)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeObjectCreation(ctx, restrictedTypeCache), SyntaxKind.ObjectCreationExpression)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeRaiseEvent(ctx, restrictedTypeCache), SyntaxKind.RaiseEventStatement)
+        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeNamedFieldInitializer(ctx, restrictedTypeCache), SyntaxKind.NamedFieldInitializer)
     End Sub
 
     Private Sub AnalyzeRaiseEvent(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
@@ -61,40 +62,32 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
         Dim cancellationToken = context.CancellationToken
 
         ' Get the event symbol being raised
-        Dim eventSymbol = semanticModel.GetSymbolInfo(raiseEventNode.Name, cancellationToken).Symbol
+        Dim eventSymbol = TryCast(semanticModel.GetSymbolInfo(raiseEventNode.Name, cancellationToken).Symbol, IEventSymbol)
         If eventSymbol Is Nothing Then
             Return
         End If
 
         ' Get the event arguments
         If raiseEventNode.ArgumentList IsNot Nothing Then
-            For i As Integer = 0 To raiseEventNode.ArgumentList.Arguments.Count - 1
+            For i = 0 To raiseEventNode.ArgumentList.Arguments.Count - 1
                 Dim arg = raiseEventNode.ArgumentList.Arguments(i)
                 Dim argNode = TryCast(arg, SimpleArgumentSyntax)
-                If argNode IsNot Nothing Then
-                    ' Get the type of the argument expression
-                    Dim expressionType = semanticModel.GetTypeInfo(argNode.Expression, cancellationToken).Type
+                If argNode Is Nothing Then Continue For
+                ' Get the type of the argument expression
+                Dim expressionType = semanticModel.GetTypeInfo(argNode.Expression, cancellationToken).Type
 
-                    ' Get the target parameter type from the event symbol
-                    Dim targetType As ITypeSymbol = Nothing
-                    If TypeOf eventSymbol Is IEventSymbol Then
-                        Dim eventArgs = DirectCast(eventSymbol, IEventSymbol).Type
-                        If TypeOf eventArgs Is INamedTypeSymbol Then
-                            Dim delegateType = DirectCast(eventArgs, INamedTypeSymbol)
-                            If delegateType.DelegateInvokeMethod IsNot Nothing Then
-                                Dim parameters = delegateType.DelegateInvokeMethod.Parameters
-                                If i < parameters.Length Then
-                                    targetType = parameters(i).Type
-                                End If
-                            End If
-                        End If
-                    End If
-
-                    ' Check for restricted type conversion to Object or ValueType
-                    If targetType IsNot Nothing Then
-                        CheckRestrictedConversion(expressionType, targetType, argNode, context, restrictedTypeCache)
-                    End If
+                ' Get the target parameter type from the event symbol
+                Dim targetType As ITypeSymbol = Nothing
+                Dim eventArgs = eventSymbol.Type
+                Dim delegateMethod = TryCast(eventArgs, INamedTypeSymbol)?.DelegateInvokeMethod
+                If delegateMethod Is Nothing Then Continue For
+                Dim parameters = delegateMethod.Parameters
+                If i < parameters.Length Then
+                    targetType = parameters(i).Type
                 End If
+
+                ' Check for restricted type conversion to Object or ValueType
+                CheckRestrictedConversion(expressionType, targetType, argNode, context, restrictedTypeCache)
             Next
         End If
     End Sub
@@ -105,27 +98,29 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
         Dim cancellationToken = context.CancellationToken
 
         ' Check each argument in the object creation
-        If creationNode.ArgumentList IsNot Nothing Then
-            For Each arg In creationNode.ArgumentList.Arguments
-                Dim argNode = TryCast(arg, SimpleArgumentSyntax)
-                If argNode IsNot Nothing Then
-                    ' Get the type of the argument expression
-                    Dim expressionType = semanticModel.GetTypeInfo(argNode.Expression, cancellationToken).Type
-
-                    ' Try to determine the target parameter type
-                    Dim targetType As ITypeSymbol = Nothing
-                    Dim parameter = GetParameterForArgument(argNode, semanticModel, cancellationToken)
-                    If parameter IsNot Nothing Then
-                        targetType = parameter.Type
-                    End If
-
-                    ' Check for restricted type conversion to Object or ValueType
-                    If targetType IsNot Nothing Then
-                        CheckRestrictedConversion(expressionType, targetType, argNode, context, restrictedTypeCache)
-                    End If
-                End If
-            Next
+        If creationNode.ArgumentList Is Nothing Then
+            Return
         End If
+
+        For Each arg In creationNode.ArgumentList.Arguments
+            Dim argNode = TryCast(arg, SimpleArgumentSyntax)
+            If argNode Is Nothing Then
+                Continue For
+            End If
+
+            ' Get the type of the argument expression
+            Dim expressionType = semanticModel.GetTypeInfo(argNode.Expression, cancellationToken).Type
+
+            ' Try to determine the target parameter type
+            Dim targetType As ITypeSymbol = Nothing
+            Dim parameter = GetParameterForArgument(argNode, semanticModel, cancellationToken)
+            If parameter IsNot Nothing Then
+                targetType = parameter.Type
+            End If
+
+            ' Check for restricted type conversion to Object or ValueType
+            CheckRestrictedConversion(expressionType, targetType, argNode, context, restrictedTypeCache)
+        Next
     End Sub
 
     Private Function IsOptionRestrictEnabled(compilation As Compilation) As Boolean
@@ -264,11 +259,10 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
                                           restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
                                           <CallerMemberName> Optional callerName As String = Nothing)
         ' Check if this is a restricted type being converted to Object or ValueType
-        If expressionType IsNot Nothing AndAlso targetType IsNot Nothing Then
-            If IsRestrictedType(expressionType, restrictedTypeCache) AndAlso (IsObjectType(targetType) OrElse IsValueTypeType(targetType)) Then
-                Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, node.GetLocation(), expressionType.Name)
-                context.ReportDiagnostic(diagnostic)
-            End If
+        If expressionType Is Nothing OrElse targetType Is Nothing Then Return
+        If IsRestrictedType(expressionType, restrictedTypeCache) AndAlso (IsObjectType(targetType) OrElse IsValueTypeType(targetType)) Then
+            Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, node.GetLocation(), expressionType.Name)
+            context.ReportDiagnostic(diagnostic)
         End If
     End Sub
 
@@ -352,19 +346,6 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
             End If
         Next
 
-        ' Check for nested restricted types in generic arguments
-        If TypeOf typeSymbol Is INamedTypeSymbol Then
-            Dim namedType = DirectCast(typeSymbol, INamedTypeSymbol)
-            If namedType.IsGenericType Then
-                For Each arg In namedType.TypeArguments
-                    If IsRestrictedType(arg, restrictedTypeCache) Then
-                        restrictedTypeCache.TryAdd(typeSymbol, True)
-                        Return True
-                    End If
-                Next
-            End If
-        End If
-
         restrictedTypeCache.TryAdd(typeSymbol, False)
         Return False
     End Function
@@ -378,4 +359,19 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
         If typeSymbol Is Nothing Then Return False
         Return typeSymbol.SpecialType = SpecialType.System_ValueType
     End Function
+
+    Private Sub AnalyzeNamedFieldInitializer(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+        Dim fieldInitNode = DirectCast(context.Node, NamedFieldInitializerSyntax)
+        Dim semanticModel = context.SemanticModel
+        Dim cancellationToken = context.CancellationToken
+
+        ' Try to determine the target field type
+        Dim fieldSymbol = semanticModel.GetSymbolInfo(fieldInitNode.Name, cancellationToken).Symbol
+        Dim targetType As ITypeSymbol = Nothing
+        If fieldSymbol IsNot Nothing Then
+            targetType = If(TryCast(fieldSymbol, IFieldSymbol)?.Type, TryCast(fieldSymbol, IPropertySymbol)?.Type)
+        End If
+        Dim expressionSymbol = TryCast(semanticModel.GetSymbolInfo(fieldInitNode.Expression, cancellationToken).Symbol, ILocalSymbol)
+        CheckRestrictedConversion(expressionSymbol.Type, targetType, fieldInitNode.Expression, context, restrictedTypeCache)
+    End Sub
 End Class
