@@ -49,24 +49,28 @@ Public Class RefStructConvertToBoxedTypeAnalyzerTests
         Return diagnostics.Any(Function(d) d.Id = diagnosticId)
     End Function
 
-    ' 直接将 Span 赋值给 Object 变量
-    <TestMethod>
-    Public Sub TestSpanToObjectAssignment()
-        Dim source As String = "
+    Private Sub AssertThatDiagTriggeredInSub(snippetContent As String)
+        Dim source As String = $"
 Imports System
 Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim span As Span(Of Integer) = arr.AsSpan()
-        Dim obj As Object = span  ' 这应该触发 BCX31394
+        {snippetContent}
     End Sub
 End Class
 "
         Dim diagnostics = GetDiagnostics(source)
         Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+    End Sub
+
+    <TestMethod>
+    Public Sub TestSpanToObjectAssignment()
+        Dim snippetContent = "Dim obj As Object = span ' 这应该触发 BCX31394"
+        AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' 使用 CType 转换 Span 到 Object
