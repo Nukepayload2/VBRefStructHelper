@@ -8,7 +8,7 @@ Module TestCompilation
 
     ' 工具方法：编译代码并返回语法树文本和诊断结果
 
-    Function GetSyntaxTreeTextAndDiagnostics(source As String) As (syntaxTreeText As String, diagnostics As ImmutableArray(Of Diagnostic))
+    Function GetSyntaxTreeTextAndDiagnostics(source As String, Optional syntaxTreeSource As String = Nothing) As (syntaxTreeText As String, diagnostics As ImmutableArray(Of Diagnostic))
         ' 创建解析选项
         Dim parseOptions = New VisualBasicParseOptions()
 
@@ -41,7 +41,13 @@ Module TestCompilation
         Dim diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result
 
         ' 获取语法树文本用于调试
-        Dim syntaxTreeText = SyntaxTreeVisualizer.ToVisualString(syntaxTree.GetRoot())
+        Dim syntaxTreeText As String
+        If syntaxTreeSource Is Nothing Then
+            syntaxTreeText = SyntaxTreeVisualizer.ToVisualString(syntaxTree.GetRoot())
+        Else
+            syntaxTree = VisualBasicSyntaxTree.ParseText(syntaxTreeSource, parseOptions)
+            syntaxTreeText = SyntaxTreeVisualizer.ToVisualString(syntaxTree.GetRoot())
+        End If
 
         Return (syntaxTreeText, diagnostics)
     End Function

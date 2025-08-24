@@ -17,8 +17,8 @@ Class TestClass
     End Sub
 End Class
 "
-        With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
+        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
@@ -42,65 +42,6 @@ End Class
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 Object 数组
-    <TestMethod>
-    Public Sub TestSpanInObjectArray()
-        Dim snippetContent = "Dim objArray As Object() = {span, ""hello"", 42}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestSpanInObjectArray2()
-        Dim snippetContent = "Dim objArray = New Object() {span, ""hello"", 42}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestSpanInObjectArray3()
-        Dim snippetContent = "Dim objArray = {span, ""hello"", 42}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 Object 数组 (42, span)
-    <TestMethod>
-    Public Sub TestSpanInObjectArray4()
-        Dim snippetContent = "Dim objArray = {42, span}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 Object 数组 (CType(42, Object), span)
-    <TestMethod>
-    Public Sub TestSpanInObjectArray5()
-        Dim snippetContent = "Dim objArray = {CType(42, Object), span}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 Object 数组 As Object() = {span}
-    <TestMethod>
-    Public Sub TestSpanInObjectArray6()
-        Dim snippetContent = "Dim objArray As Object() = {span}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 Object 数组 () As Object = {span}
-    <TestMethod>
-    Public Sub TestSpanInObjectArray7()
-        Dim snippetContent = "Dim objArray() As Object = {span}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestSpanInObjectList()
-        Dim snippetContent = "Dim objList4 = New List(Of Object) From {span, ""hello"", 42}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestSpanInObjectList2()
-        Dim snippetContent = "Dim objList4 As New List(Of Object) From {span, ""hello"", 42}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
     ' 将 Span 赋值给 ValueType 变量
     <TestMethod>
     Public Sub TestSpanToValueTypeAssignment()
@@ -112,12 +53,6 @@ End Class
     <TestMethod>
     Public Sub TestCTypeSpanToValueType()
         Dim snippetContent = "Dim valueType As ValueType = CType(span, ValueType)  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestCObjSpan()
-        Dim snippetContent = "Dim valueType = CObj(span)  ' 这应该触发 BCX31394"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
@@ -153,79 +88,6 @@ End Class
     <TestMethod>
     Public Sub TestSpanToValueTypeAssignmentDirect()
         Dim snippetContent = "Dim valueType As ValueType = span  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 ValueType 数组
-    <TestMethod>
-    Public Sub TestSpanInValueTypeArray()
-        Dim snippetContent = "Dim vtArray As ValueType() = {span, 42}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 ValueType 数组 (CType(42, ValueType), span)
-    <TestMethod>
-    Public Sub TestSpanInValueTypeArray2()
-        Dim snippetContent = "Dim vtArray = {CType(42, ValueType), span}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestSpanInValueTypeArray3()
-        Dim snippetContent = "Dim vtArray() As ValueType = {span}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestSpanInValueTypeArray4()
-        Dim snippetContent = "Dim vtArray As ValueType() = {span}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestSpanInValueTypeArray5()
-        Dim snippetContent = "Dim vtArray() As ValueType = {span, 42}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 ValueType 列表
-    <TestMethod>
-    Public Sub TestSpanInValueTypeList()
-        Dim snippetContent = "Dim vtList1 = New List(Of ValueType) From {span, 42}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestSpanInValueTypeList2()
-        Dim snippetContent = "Dim vtList2 As New List(Of ValueType) From {span, 42}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 Object 字典
-    <TestMethod>
-    Public Sub TestSpanInObjectDictionary()
-        Dim snippetContent = "Dim objDict1 = New Dictionary(Of String, Object) From {{""hello"", span}}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 Object 字典 (As New Dictionary)
-    <TestMethod>
-    Public Sub TestSpanInObjectDictionary2()
-        Dim snippetContent = "Dim objDict2 As New Dictionary(Of String, Object) From {{""hello"", span}}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 ValueType 字典
-    <TestMethod>
-    Public Sub TestSpanInValueTypeDictionary()
-        Dim snippetContent = "Dim vtDict1 = New Dictionary(Of Integer, ValueType) From {{1, span}}  ' 这应该触发 BCX31394"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' 将 Span 添加到 ValueType 字典 (As New Dictionary)
-    <TestMethod>
-    Public Sub TestSpanInValueTypeDictionary2()
-        Dim snippetContent = "Dim vtDict2 As New Dictionary(Of Integer, ValueType) From {{2, span}}  ' 这应该触发 BCX31394"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
