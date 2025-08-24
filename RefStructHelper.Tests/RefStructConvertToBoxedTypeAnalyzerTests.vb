@@ -10,6 +10,25 @@ Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
+
+    ' 辅助方法
+    Sub TestMethodTakingObject(obj As Object)
+        ' 这个方法用于测试参数传递场景
+    End Sub
+
+    ' 辅助方法
+    Sub TestMethodTakingValueType(obj As ValueType)
+        ' 这个方法用于测试参数传递场景
+    End Sub
+
+    Private Class Something
+        Sub New(arg As Span(Of Integer))
+
+        End Sub
+    End Class
+
+    Private Event SomeEvent(arg As Span(Of Integer))
+
     Sub TestMethod()
         Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim span As Span(Of Integer) = arr.AsSpan()
@@ -91,6 +110,38 @@ End Class
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
+    ' 将 Span 作为 Object 参数传递
+    <TestMethod>
+    Public Sub TestSpanAsObjectParameter()
+        Dim snippetContent = "TestMethodTakingObject(span)"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    ' 将 Span 作为 ValueType 参数传递
+    <TestMethod>
+    Public Sub TestSpanAsValueTypeParameter()
+        Dim snippetContent = "TestMethodTakingValueType(span)"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestEventRaiseWithSpan()
+        Dim snippetContent = "RaiseEvent SomeEvent(span)  ' 这应该触发 BCX31394"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestNewSomethingWithSpan()
+        Dim snippetContent = "Dim x As New Something(span)  ' 这应该触发 BCX31394"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestNewSomethingWithSpanImplicit()
+        Dim snippetContent = "Dim y = New Something(span)  ' 这应该触发 BCX31394"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
     ' 从函数返回 Span 作为 Object
     <TestMethod>
     Public Sub TestReturnSpanAsObject()
@@ -126,54 +177,6 @@ Class TestClass
         Dim span As Span(Of Integer) = arr.AsSpan()
         Return span  ' 这应该触发 BCX31394
     End Function
-End Class
-"
-        With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
-        End With
-    End Sub
-
-    ' 将 Span 作为 Object 参数传递
-    <TestMethod>
-    Public Sub TestSpanAsObjectParameter()
-        Dim source As String = "
-Imports System
-Imports System.Runtime.InteropServices
-
-<Obsolete(""Suppress default ref struct obsolete errors"")>
-Class TestClass
-    Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
-        Dim span As Span(Of Integer) = arr.AsSpan()
-        TestMethodTakingObject(span)  ' 这应该触发 BCX31394
-    End Sub
-
-    Sub TestMethodTakingObject(obj As Object)
-    End Sub
-End Class
-"
-        With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
-        End With
-    End Sub
-
-    ' 将 Span 作为 ValueType 参数传递
-    <TestMethod>
-    Public Sub TestSpanAsValueTypeParameter()
-        Dim source As String = "
-Imports System
-Imports System.Runtime.InteropServices
-
-<Obsolete(""Suppress default ref struct obsolete errors"")>
-Class TestClass
-    Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
-        Dim span As Span(Of Integer) = arr.AsSpan()
-        TestMethodTakingValueType(span)  ' 这应该触发 BCX31394
-    End Sub
-
-    Sub TestMethodTakingValueType(obj As ValueType)
-    End Sub
 End Class
 "
         With GetSyntaxTreeTextAndDiagnostics(source)
