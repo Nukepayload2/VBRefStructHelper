@@ -22,7 +22,8 @@ Public Class RefStructConvertToBoxedTypeAnalyzerTests
         Dim references As MetadataReference() = {
             MetadataReference.CreateFromFile(GetType(Object).Assembly.Location),
             MetadataReference.CreateFromFile(GetType(Span(Of )).Assembly.Location),
-            MetadataReference.CreateFromFile(GetType(ValueType).Assembly.Location)
+            MetadataReference.CreateFromFile(GetType(ValueType).Assembly.Location),
+            MetadataReference.CreateFromFile(GetType(System.Runtime.InteropServices.MemoryMarshal).Assembly.Location)
         }.DistinctBy(Function(it) it.FilePath).ToArray
 
         ' 创建编译选项，启用 OptionRestrict

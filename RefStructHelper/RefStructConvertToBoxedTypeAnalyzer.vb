@@ -49,7 +49,6 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeAssignment(ctx, restrictedTypeCache), SyntaxKind.SimpleAssignmentStatement)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeArgument(ctx, restrictedTypeCache), SyntaxKind.SimpleArgument)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeArrayCreation(ctx, restrictedTypeCache), SyntaxKind.ArrayCreationExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeAssignment(ctx, restrictedTypeCache), SyntaxKind.SimpleAssignmentStatement)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeReturnStatement(ctx, restrictedTypeCache), SyntaxKind.ReturnStatement)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeLocalDeclaration(ctx, restrictedTypeCache), SyntaxKind.LocalDeclarationStatement)
     End Sub
@@ -197,7 +196,7 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
             ' Check if there's an initializer
             If declarator.Initializer IsNot Nothing Then
                 ' Get the type of the variable being declared
-                Dim variableType As ITypeSymbol = Nothing
+                Dim variableType As ITypeSymbol
                 If declarator.AsClause IsNot Nothing Then
                     variableType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
                 Else
