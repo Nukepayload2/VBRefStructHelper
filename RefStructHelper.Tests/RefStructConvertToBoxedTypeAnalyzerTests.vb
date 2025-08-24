@@ -3,6 +3,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
 Imports System.Collections.Immutable
+Imports System.Text
 
 <TestClass>
 <Obsolete("Suppress default ref struct obsolete errors")>
@@ -42,7 +43,7 @@ Public Class RefStructConvertToBoxedTypeAnalyzerTests
         Dim diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result
 
         ' 获取语法树文本用于调试
-        Dim syntaxTreeText = syntaxTree.GetRoot().ToFullString()
+        Dim syntaxTreeText = SyntaxTreeVisualizer.ToVisualString(syntaxTree.GetRoot())
 
         Return (syntaxTreeText, diagnostics)
     End Function
