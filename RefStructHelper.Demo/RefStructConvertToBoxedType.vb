@@ -1,16 +1,6 @@
 <Obsolete("Suppress default ref struct obsolete errors")>
 Public Class RefStructConvertToBoxedType
-    ' 演示 Span 类型的各种错误用法，这些应该被 RefStructConvertToBoxedTypeAnalyzer 检测到
-
-    ' 辅助方法
-    Sub TestMethodTakingObject(obj As Object)
-        ' 这个方法用于测试参数传递场景
-    End Sub
-
-    ' 辅助方法
-    Sub TestMethodTakingValueType(obj As ValueType)
-        ' 这个方法用于测试参数传递场景
-    End Sub
+    ' 演示 Span 类型的各种错误用法
 
     Sub WrongUsagesTypeCast()
         Dim arr As Integer() = {1, 2, 3, 4, 5}
@@ -30,6 +20,35 @@ Public Class RefStructConvertToBoxedType
 
         TestMethodTakingObject(span)  ' 这应该触发 BCX31394
         TestMethodTakingValueType(span)  ' 这应该触发 BCX31394
+    End Sub
+
+    ' 辅助方法
+    Sub TestMethodTakingObject(obj As Object)
+        ' 这个方法用于测试参数传递场景
+    End Sub
+
+    ' 辅助方法
+    Sub TestMethodTakingValueType(obj As ValueType)
+        ' 这个方法用于测试参数传递场景
+    End Sub
+
+    Private Class Something
+        Sub New(arg As Span(Of Integer))
+
+        End Sub
+    End Class
+
+    Private Event SomeEvent(arg As Span(Of Integer))
+
+    Sub WrongUsagesInvoke()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim span As Span(Of Integer) = arr.AsSpan()
+
+        TestMethodTakingObject(span)  ' 这应该触发 BCX31394
+        TestMethodTakingValueType(span)  ' 这应该触发 BCX31394
+        RaiseEvent SomeEvent(span)  ' 这应该触发 BCX31394
+        Dim x As New Something(span)  ' 这应该触发 BCX31394
+        Dim y = New Something(span)  ' 这应该触发 BCX31394
     End Sub
 
     Function WrongUsagesTypeCastAtReturn() As Object
