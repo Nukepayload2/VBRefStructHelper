@@ -8,9 +8,9 @@ Imports System.Collections.Immutable
 <Obsolete("Suppress default ref struct obsolete errors")>
 Public Class RefStructConvertToBoxedTypeAnalyzerTests
 
-    ' 工具方法：编译代码并返回诊断结果
+    ' 工具方法：编译代码并返回语法树文本和诊断结果
 
-    Private Function GetDiagnostics(source As String) As ImmutableArray(Of Diagnostic)
+    Private Function GetSyntaxTreeTextAndDiagnostics(source As String) As (syntaxTreeText As String, diagnostics As ImmutableArray(Of Diagnostic))
         ' 创建解析选项
         Dim parseOptions = New VisualBasicParseOptions()
 
@@ -41,7 +41,10 @@ Public Class RefStructConvertToBoxedTypeAnalyzerTests
         Dim compilationWithAnalyzers = compilation.WithAnalyzers(analyzers)
         Dim diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result
 
-        Return diagnostics
+        ' 获取语法树文本用于调试
+        Dim syntaxTreeText = syntaxTree.GetRoot().ToFullString()
+
+        Return (syntaxTreeText, diagnostics)
     End Function
 
     ' 工具方法：检查是否包含指定ID的诊断
@@ -63,8 +66,9 @@ Class TestClass
     End Sub
 End Class
 "
-        Dim diagnostics = GetDiagnostics(source)
-        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+        With GetSyntaxTreeTextAndDiagnostics(source)
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
+        End With
     End Sub
 
     <TestMethod>
@@ -290,8 +294,9 @@ Class TestClass
     End Function
 End Class
 "
-        Dim diagnostics = GetDiagnostics(source)
-        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+        With GetSyntaxTreeTextAndDiagnostics(source)
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
+        End With
     End Sub
 
     ' 从函数返回 Span 作为 ValueType
@@ -310,8 +315,9 @@ Class TestClass
     End Function
 End Class
 "
-        Dim diagnostics = GetDiagnostics(source)
-        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+        With GetSyntaxTreeTextAndDiagnostics(source)
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
+        End With
     End Sub
 
     ' 将 Span 作为 Object 参数传递
@@ -333,8 +339,9 @@ Class TestClass
     End Sub
 End Class
 "
-        Dim diagnostics = GetDiagnostics(source)
-        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+        With GetSyntaxTreeTextAndDiagnostics(source)
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
+        End With
     End Sub
 
     ' 将 Span 作为 ValueType 参数传递
@@ -356,8 +363,9 @@ Class TestClass
     End Sub
 End Class
 "
-        Dim diagnostics = GetDiagnostics(source)
-        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+        With GetSyntaxTreeTextAndDiagnostics(source)
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
+        End With
     End Sub
 
     ' ReadOnlySpan 的类似测试
@@ -375,8 +383,9 @@ Class TestClass
     End Sub
 End Class
 "
-        Dim diagnostics = GetDiagnostics(source)
-        Assert.IsTrue(ContainsDiagnostic(diagnostics, "BCX31394"), "应该检测到 BCX31394 诊断")
+        With GetSyntaxTreeTextAndDiagnostics(source)
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
+        End With
     End Sub
 
     ' 正确的用法不应该触发
@@ -398,8 +407,9 @@ Class TestClass
     End Sub
 End Class
 "
-        Dim diagnostics = GetDiagnostics(source)
-        Assert.IsFalse(ContainsDiagnostic(diagnostics, "BCX31394"), "不应该检测到 BCX31394 诊断")
+        With GetSyntaxTreeTextAndDiagnostics(source)
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31394"), $"不应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
+        End With
     End Sub
 
     ' 没有使用 Span 的正常代码不应该触发
@@ -416,8 +426,9 @@ Class TestClass
     End Sub
 End Class
 "
-        Dim diagnostics = GetDiagnostics(source)
-        Assert.IsFalse(ContainsDiagnostic(diagnostics, "BCX31394"), "不应该检测到 BCX31394 诊断")
+        With GetSyntaxTreeTextAndDiagnostics(source)
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31394"), $"不应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
+        End With
     End Sub
 
 End Class
