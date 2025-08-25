@@ -48,6 +48,7 @@ Public Class RefStructBCX31396Analyzer
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeArrayType(ctx, restrictedTypeCache), SyntaxKind.ArrayType)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeFieldDeclaration(ctx, restrictedTypeCache), SyntaxKind.FieldDeclaration)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzePropertyDeclaration(ctx, restrictedTypeCache), SyntaxKind.PropertyStatement)
+        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzePropertyBlock(ctx, restrictedTypeCache), SyntaxKind.PropertyBlock)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeParameter(ctx, restrictedTypeCache), SyntaxKind.Parameter)
         ' context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeMethodDeclaration(ctx, restrictedTypeCache), SyntaxKind.MethodBlock)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeAnonymousObjectCreation(ctx, restrictedTypeCache), SyntaxKind.AnonymousObjectCreationExpression)
@@ -104,9 +105,15 @@ Public Class RefStructBCX31396Analyzer
                 If fieldType IsNot Nothing AndAlso IsRestrictedType(fieldType, restrictedTypeCache) Then
                     ' Check if the containing type is a class (not a restricted struct)
                     Dim containingTypeSymbol = TryCast(semanticModel.GetDeclaredSymbol(fieldDeclNode.Parent, cancellationToken), INamedTypeSymbol)
-                    If containingTypeSymbol IsNot Nothing AndAlso containingTypeSymbol.TypeKind = TypeKind.Class AndAlso Not IsRestrictedType(containingTypeSymbol, restrictedTypeCache) Then
-                        Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), fieldType.Name)
-                        context.ReportDiagnostic(diagnostic)
+                    If containingTypeSymbol IsNot Nothing Then
+                        ' For classes, report diagnostic. For structs, only report if the struct is not restricted
+                        If containingTypeSymbol.TypeKind = TypeKind.Class Then
+                            Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), fieldType.Name)
+                            context.ReportDiagnostic(diagnostic)
+                        ElseIf containingTypeSymbol.TypeKind = TypeKind.Structure AndAlso Not IsRestrictedType(containingTypeSymbol, restrictedTypeCache) Then
+                            Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), fieldType.Name)
+                            context.ReportDiagnostic(diagnostic)
+                        End If
                     End If
                 End If
             End If
@@ -123,9 +130,40 @@ Public Class RefStructBCX31396Analyzer
             If propertyType IsNot Nothing AndAlso IsRestrictedType(propertyType, restrictedTypeCache) Then
                 ' Check if the containing type is a class (not a restricted struct)
                 Dim containingTypeSymbol = TryCast(semanticModel.GetDeclaredSymbol(propertyNode.Parent, cancellationToken), INamedTypeSymbol)
-                If containingTypeSymbol IsNot Nothing AndAlso containingTypeSymbol.TypeKind = TypeKind.Class AndAlso Not IsRestrictedType(containingTypeSymbol, restrictedTypeCache) Then
-                    Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, propertyNode.AsClause.Type.GetLocation(), propertyType.Name)
-                    context.ReportDiagnostic(diagnostic)
+                If containingTypeSymbol IsNot Nothing Then
+                    ' For classes, report diagnostic. For structs, only report if the struct is not restricted
+                    If containingTypeSymbol.TypeKind = TypeKind.Class Then
+                        Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, propertyNode.AsClause.Type.GetLocation(), propertyType.Name)
+                        context.ReportDiagnostic(diagnostic)
+                    ElseIf containingTypeSymbol.TypeKind = TypeKind.Structure AndAlso Not IsRestrictedType(containingTypeSymbol, restrictedTypeCache) Then
+                        Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, propertyNode.AsClause.Type.GetLocation(), propertyType.Name)
+                        context.ReportDiagnostic(diagnostic)
+                    End If
+                End If
+            End If
+        End If
+    End Sub
+
+    Private Sub AnalyzePropertyBlock(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+        Dim propertyBlockNode = DirectCast(context.Node, PropertyBlockSyntax)
+        Dim semanticModel = context.SemanticModel
+        Dim cancellationToken = context.CancellationToken
+
+        ' Analyze the property statement
+        If propertyBlockNode.PropertyStatement.AsClause IsNot Nothing Then
+            Dim propertyType = semanticModel.GetTypeInfo(propertyBlockNode.PropertyStatement.AsClause.Type, cancellationToken).Type
+            If propertyType IsNot Nothing AndAlso IsRestrictedType(propertyType, restrictedTypeCache) Then
+                ' Check if the containing type is a class (not a restricted struct)
+                Dim containingTypeSymbol = TryCast(semanticModel.GetDeclaredSymbol(propertyBlockNode.Parent, cancellationToken), INamedTypeSymbol)
+                If containingTypeSymbol IsNot Nothing Then
+                    ' For classes, report diagnostic. For structs, only report if the struct is not restricted
+                    If containingTypeSymbol.TypeKind = TypeKind.Class Then
+                        Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, propertyBlockNode.PropertyStatement.AsClause.Type.GetLocation(), propertyType.Name)
+                        context.ReportDiagnostic(diagnostic)
+                    ElseIf containingTypeSymbol.TypeKind = TypeKind.Structure AndAlso Not IsRestrictedType(containingTypeSymbol, restrictedTypeCache) Then
+                        Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, propertyBlockNode.PropertyStatement.AsClause.Type.GetLocation(), propertyType.Name)
+                        context.ReportDiagnostic(diagnostic)
+                    End If
                 End If
             End If
         End If
@@ -258,7 +296,31 @@ Public Class RefStructBCX31396Analyzer
                     ' Infer the type from the initializer
                     variableType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
                 End If
+
+                ' Check if the variable type is restricted
+                If variableType IsNot Nothing AndAlso IsRestrictedType(variableType, restrictedTypeCache) Then
+                    Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.GetLocation(), variableType.Name)
+                    context.ReportDiagnostic(diagnostic)
+                End If
             End If
+            
+            ' Check for nullable type inference (e.g., Dim nullableSpan? = span)
+            ' Look for the question token in the identifier
+            For Each name In declarator.Names
+                If Not name.Nullable.IsMissing Then
+                    ' Check if the nullable token is a question mark
+                    If name.Nullable.IsKind(SyntaxKind.QuestionToken) Then
+                        ' Get the inferred type from the initializer
+                        If declarator.Initializer IsNot Nothing Then
+                            Dim initializerType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
+                            If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType, restrictedTypeCache) Then
+                                Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, name.Nullable.GetLocation(), initializerType.Name)
+                                context.ReportDiagnostic(diagnostic)
+                            End If
+                        End If
+                    End If
+                End If
+            Next
         Next
     End Sub
 
