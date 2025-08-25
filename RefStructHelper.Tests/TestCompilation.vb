@@ -35,8 +35,9 @@ Module TestCompilation
         )
 
         ' 运行我们的分析器
-        Dim analyzer As New RefStructConvertToBoxedTypeAnalyzer()
-        Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)({analyzer})
+        Dim analyzer1 As DiagnosticAnalyzer = New RefStructConvertToBoxedTypeAnalyzer()
+        Dim analyzer2 As DiagnosticAnalyzer = New RefStructBCX31396Analyzer()
+        Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)({analyzer1, analyzer2})
         Dim compilationWithAnalyzers = compilation.WithAnalyzers(analyzers)
         Dim diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result
 

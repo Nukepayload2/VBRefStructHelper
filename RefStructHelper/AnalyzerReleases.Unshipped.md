@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 BCX31394 | Type Safety | Error | RefStructConvertToBoxedTypeAnalyzer
+BCX31396 | Type Safety | Error | RefStructBCX31396Analyzer
