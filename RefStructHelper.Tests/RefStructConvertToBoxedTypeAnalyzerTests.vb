@@ -1,6 +1,6 @@
 ﻿Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
-<TestClass, Ignore("Focus on other tests")>
+<TestClass>
 Public Class RefStructConvertToBoxedTypeAnalyzerTests
 
     Private Sub AssertThatDiagTriggeredInSub(snippetContent As String)

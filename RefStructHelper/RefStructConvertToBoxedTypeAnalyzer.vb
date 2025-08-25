@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
+' 一些工具在 SymbolHelper
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class RefStructConvertToBoxedTypeAnalyzer
     Inherits DiagnosticAnalyzer

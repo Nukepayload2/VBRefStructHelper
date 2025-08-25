@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-
+' 一些工具在 SymbolHelper
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class RefStructBCX31396Analyzer
     Inherits DiagnosticAnalyzer
@@ -155,11 +155,12 @@ Public Class RefStructBCX31396Analyzer
                 ' Check if the containing type is a class (not a restricted struct)
                 Dim containingTypeSymbol = TryCast(semanticModel.GetDeclaredSymbol(propertyBlockNode.Parent, cancellationToken), INamedTypeSymbol)
                 If containingTypeSymbol IsNot Nothing Then
-                    ' For classes, report diagnostic. For structs, only report if the struct is not restricted
+                    ' For classes, report diagnostic. For structs, report diagnostic if the struct is restricted (IsByRefLike)
                     If containingTypeSymbol.TypeKind = TypeKind.Class Then
                         Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, propertyBlockNode.PropertyStatement.AsClause.Type.GetLocation(), propertyType.Name)
                         context.ReportDiagnostic(diagnostic)
-                    ElseIf containingTypeSymbol.TypeKind = TypeKind.Structure AndAlso Not IsRestrictedType(containingTypeSymbol, restrictedTypeCache) Then
+                    ElseIf containingTypeSymbol.TypeKind = TypeKind.Structure Then
+                        ' For structures, always report the diagnostic for restricted types
                         Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, propertyBlockNode.PropertyStatement.AsClause.Type.GetLocation(), propertyType.Name)
                         context.ReportDiagnostic(diagnostic)
                     End If
@@ -287,7 +288,7 @@ Public Class RefStructBCX31396Analyzer
                     context.ReportDiagnostic(diagnostic)
                 End If
             End If
-            
+
             ' Check for nullable type inference (e.g., Dim nullableSpan? = span)
             ' Look for the question token in the identifier
             For Each name In declarator.Names
