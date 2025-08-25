@@ -50,7 +50,6 @@ Public Class RefStructBCX31396Analyzer
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzePropertyDeclaration(ctx, restrictedTypeCache), SyntaxKind.PropertyStatement)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzePropertyBlock(ctx, restrictedTypeCache), SyntaxKind.PropertyBlock)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeParameter(ctx, restrictedTypeCache), SyntaxKind.Parameter)
-        ' context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeMethodDeclaration(ctx, restrictedTypeCache), SyntaxKind.MethodBlock)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeAnonymousObjectCreation(ctx, restrictedTypeCache), SyntaxKind.AnonymousObjectCreationExpression)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeObjectCreation(ctx, restrictedTypeCache), SyntaxKind.ObjectCreationExpression)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeCollectionInitializer(ctx, restrictedTypeCache), SyntaxKind.CollectionInitializer)
@@ -182,21 +181,6 @@ Public Class RefStructBCX31396Analyzer
                     Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, parameterNode.AsClause.Type.GetLocation(), parameterType.Name)
                     context.ReportDiagnostic(diagnostic)
                 End If
-            End If
-        End If
-    End Sub
-
-    Private Sub AnalyzeMethodDeclaration(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
-        Dim methodNode = DirectCast(context.Node, MethodBlockSyntax)
-        Dim semanticModel = context.SemanticModel
-        Dim cancellationToken = context.CancellationToken
-
-        If methodNode.SubOrFunctionStatement.AsClause IsNot Nothing Then
-            Dim returnType = semanticModel.GetTypeInfo(methodNode.SubOrFunctionStatement.AsClause.Type, cancellationToken).Type
-            If returnType IsNot Nothing AndAlso IsRestrictedType(returnType, restrictedTypeCache) Then
-                ' This is a warning according to the specification
-                Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, methodNode.SubOrFunctionStatement.AsClause.Type.GetLocation(), returnType.Name)
-                context.ReportDiagnostic(diagnostic)
             End If
         End If
     End Sub
@@ -383,24 +367,4 @@ Public Class RefStructBCX31396Analyzer
         End If
     End Sub
 
-    Private Function IsRestrictedType(typeSymbol As ITypeSymbol, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean)) As Boolean
-        If typeSymbol Is Nothing Then Return False
-
-        ' Check cache first to improve performance
-        Dim isRestricted As Boolean
-        If restrictedTypeCache.TryGetValue(typeSymbol, isRestricted) Then
-            Return isRestricted
-        End If
-
-        ' Check if the type has System.Runtime.CompilerServices.IsByRefLikeAttribute
-        For Each attribute In typeSymbol.GetAttributes()
-            If attribute.AttributeClass?.ToDisplayString() = "System.Runtime.CompilerServices.IsByRefLikeAttribute" Then
-                restrictedTypeCache.TryAdd(typeSymbol, True)
-                Return True
-            End If
-        Next
-
-        restrictedTypeCache.TryAdd(typeSymbol, False)
-        Return False
-    End Function
 End Class
