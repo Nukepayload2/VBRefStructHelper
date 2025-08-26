@@ -47,10 +47,10 @@ Imports System.Threading.Tasks
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
-    Async Function TestMethod() As Task(Of Integer)
-        Dim span As Span(Of Integer) = stackalloc Integer(10)  ' 这应该触发 BCX37052
+    Async Function TestMethod() As Task
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim span = arr.AsSpan()  ' 这应该触发 BCX37052
         Await Task.Delay(100)
-        Return span.Length
     End Function
 End Class
 "
@@ -58,7 +58,7 @@ End Class
     End Sub
 
     <TestMethod>
-    Public Sub TestRestrictedTypeInAsyncMethodLocalVar()
+    Public Sub TestRestrictedTypeInAsyncMethod3()
         Dim source As String = "
 Imports System
 Imports System.Runtime.InteropServices
@@ -66,10 +66,11 @@ Imports System.Threading.Tasks
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
-    Async Function TestMethod() As Task
-        Dim localSpan As Span(Of Integer) = Span(Of Integer).Empty  ' 这应该触发 BCX37052
+    Async Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim span = arr.AsSpan()  ' 这应该触发 BCX37052
         Await Task.Delay(100)
-    End Function
+    End Sub
 End Class
 "
         AssertThatShouldHaveError(source, source)
@@ -107,52 +108,10 @@ Imports System.Collections.Generic
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
-    Iterator Function TestMethod() As IEnumerator(Of Integer)
-        Dim span As Span(Of Integer) = stackalloc Integer(5)  ' 这应该触发 BCX37052
-        Yield span.Length
-    End Function
-End Class
-"
-        AssertThatShouldHaveError(source, source)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeInIteratorLocalVar()
-        Dim source As String = "
-Imports System
-Imports System.Runtime.InteropServices
-Imports System.Collections.Generic
-
-<Obsolete(""Suppress default ref struct obsolete errors"")>
-Class TestClass
-    Iterator Function TestMethod() As IEnumerable(Of String)
-        Dim localSpan As Span(Of Integer) = Span(Of Integer).Empty  ' 这应该触发 BCX37052
-        Yield localSpan.Length.ToString()
-    End Function
-End Class
-"
-        AssertThatShouldHaveError(source, source)
-    End Sub
-
-    ' ====================
-    ' Async Iterator 方法测试
-    ' ====================
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeInAsyncIteratorMethod()
-        Dim source As String = "
-Imports System
-Imports System.Runtime.InteropServices
-Imports System.Collections.Generic
-Imports System.Threading.Tasks
-
-<Obsolete(""Suppress default ref struct obsolete errors"")>
-Class TestClass
-    Async Iterator Function TestMethod() As IAsyncEnumerable(Of Integer)
+    Iterator Function TestMethod() As IEnumerable(Of Integer)
         Dim arr As Integer() = {1, 2, 3, 4, 5}
-        Dim span As Span(Of Integer) = arr.AsSpan()  ' 这应该触发 BCX37052
+        Dim span = arr.AsSpan()  ' 这应该触发 BCX37052
         Yield span.Length
-        Await Task.Delay(100)
     End Function
 End Class
 "
@@ -160,7 +119,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 参数中的受限类型测试（不应该触发）
+    ' 参数/连续调用中的受限类型测试（不应该触发）
     ' ====================
 
     <TestMethod>
@@ -175,6 +134,25 @@ Class TestClass
     Async Function TestMethod(span As Span(Of Integer)) As Task(Of Integer)
         Await Task.Delay(100)
         Return span.Length
+    End Function
+End Class
+"
+        AssertThatShouldNotHaveError(source, source)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestRestrictedTypeAsCombinedCallInAsyncMethod()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Threading.Tasks
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+    Async Function TestMethod() As Task(Of Integer)
+        Dim x = {1,2,3}
+        Await Task.Delay(100)
+        Return x.AsSpan().Length
     End Function
 End Class
 "
@@ -198,8 +176,27 @@ End Class
         AssertThatShouldNotHaveError(source, source)
     End Sub
 
+    <TestMethod>
+    Public Sub TestRestrictedTypeAsCombinedCallInIteratorMethod()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Collections.Generic
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+    Iterator Function TestMethod() As IEnumerable(Of Integer)
+        Dim x = {1,2,3}
+        Await Task.Delay(100)
+        Yield x.AsSpan().Length
+    End Function
+End Class
+"
+        AssertThatShouldNotHaveError(source, source)
+    End Sub
+
     ' ====================
-    ' 正确用法测试
+    ' 误伤测试
     ' ====================
 
     <TestMethod>

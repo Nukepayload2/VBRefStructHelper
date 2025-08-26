@@ -97,6 +97,142 @@ End Class
     End Sub
 
     ' ====================
+    ' 多行 Lambda 表达式中捕获受限类型测试
+    ' ====================
+
+    <TestMethod>
+    Public Sub TestRestrictedTypeInMultiLineLambdaExpression()
+        Dim snippetContent = "Dim action As Action = Sub()
+        Console.WriteLine(span.Length)
+    End Sub"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestRestrictedTypeInMultiLineLambdaFunction()
+        Dim snippetContent = "Dim func As Func(Of Integer) = Function()
+        Return span.Length
+    End Function"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestRestrictedTypeInMultiLineLambdaWithMultipleStatements()
+        Dim snippetContent = "Dim action As Action = Sub()
+        Console.WriteLine()
+        Dim x = span.Length
+    End Sub"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestRestrictedTypeInMultiLineLambdaChain()
+        Dim snippetContent = "Dim result = arr.Select(Function(x)
+        Return x * span.Length
+    End Function).ToArray()"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestRestrictedTypeInMultiLineNestedLambda()
+        Dim snippetContent = "Dim func As Func(Of Func(Of Integer)) = Function()
+        Return Function()
+            Return span.Length
+        End Function
+    End Function"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    ' ====================
+    ' 多行 Lambda 内部正常定义本地 Span 变量测试
+    ' ====================
+
+    <TestMethod>
+    Public Sub TestNormalLocalSpanInMultiLineLambda()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Linq
+
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim action As Action = Sub()
+            Dim localArr As Integer() = {6, 7, 8, 9, 10}
+            Dim localSpan As Span(Of Integer) = localArr.AsSpan()
+            Console.WriteLine(localSpan.Length)
+        End Sub
+    End Sub
+End Class
+"
+        AssertThatShouldNotHaveError(source, source)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestNormalLocalSpanInMultiLineLambdaFunction()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Linq
+
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim func As Func(Of Integer) = Function()
+            Dim localArr As Integer() = {6, 7, 8, 9, 10}
+            Dim localSpan As Span(Of Integer) = localArr.AsSpan()
+            Return localSpan.Length
+        End Function
+    End Sub
+End Class
+"
+        AssertThatShouldNotHaveError(source, source)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestNormalLocalSpanWithMultipleOperationsInLambda()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Linq
+
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim action As Action = Sub()
+            Dim localArr As Integer() = {6, 7, 8, 9, 10}
+            Dim localSpan As Span(Of Integer) = localArr.AsSpan()
+            Dim slice = localSpan.Slice(1, 2)
+            Dim copy = localSpan.ToArray()
+            Console.WriteLine(slice.Length)
+        End Sub
+    End Sub
+End Class
+"
+        AssertThatShouldNotHaveError(source, source)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestNormalLocalSpanInLinqMultiLineLambda()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Linq
+
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim result = arr.Select(Function(x)
+            Dim localSpan As Span(Of Integer) = arr.AsSpan()
+            Return localSpan.Length
+        End Function).ToArray()
+    End Sub
+End Class
+"
+        AssertThatShouldNotHaveError(source, source)
+    End Sub
+
+    ' ====================
     ' 多层 Lambda 嵌套测试
     ' ====================
 

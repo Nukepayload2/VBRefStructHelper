@@ -422,4 +422,27 @@ End Class
         AssertThatShouldHaveError(source, source)
     End Sub
 
+    ' ====================
+    ' 误判测试
+    ' ====================
+
+    <TestMethod>
+    Public Sub TestRegularMembers()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
+        Dim span As Span(Of Integer) = arr.AsSpan()
+        arr(0) = span.Length
+        Dim sliced = span.Slice(0,2)
+    End Sub
+End Class
+"
+        AssertThatShouldNotHaveError(source, source)
+    End Sub
+
 End Class

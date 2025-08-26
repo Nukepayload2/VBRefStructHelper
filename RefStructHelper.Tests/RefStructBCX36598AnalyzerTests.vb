@@ -34,70 +34,64 @@ End Class
     End Sub
 
     ' ====================
-    ' LINQ 查询中使用受限类型测试
+    ' LINQ 查询中使用受限类型测试: 把 span 捕获到闭包里都算
     ' ====================
 
     <TestMethod>
-    Public Sub TestRestrictedTypeInLinqFromClause()
-        Dim snippetContent = "Dim query = From item In arr Select item"
+    Public Sub TestRestrictedTypeInWhereClause()
+        Dim snippetContent = "Dim q = From a In arr Where a = span.Length"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     <TestMethod>
-    Public Sub TestRestrictedTypeInLinqWhereClause()
-        Dim snippetContent = "Dim query = From x In arr Where x > 0 Select x"
+    Public Sub TestRestrictedTypeInLetClause()
+        Dim snippetContent = "Dim q = From a In arr Let b = span.Length Select a + b"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     <TestMethod>
-    Public Sub TestRestrictedTypeInLinqSelectClause()
-        Dim snippetContent = "Dim query = From x In arr Select span"
+    Public Sub TestRestrictedTypeInSelectClause()
+        Dim snippetContent = "Dim q = From a In arr Select a, g = span.Length"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     <TestMethod>
-    Public Sub TestRestrictedTypeInLinqLetClause()
-        Dim snippetContent = "Dim query = From x In arr Let y = span Select x, y"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeInLinqGroupByClause()
-        Dim snippetContent = "Dim query = From x In arr Group x By Key = span Into g"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeInLinqJoinClause()
-        Dim snippetContent = "Dim query = From x In arr Join y In arr On x Equals y Where span.Length > 0 Select x"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeInLinqOrderByClause()
-        Dim snippetContent = "Dim query = From x In arr Order By span.Length Select x"
+    Public Sub TestRestrictedTypeInGroupByClause()
+        Dim snippetContent = "Dim q = From a In arr Group By span.Length Into Group"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' ====================
-    ' LINQ 范围变量声明测试
+    ' LINQ 范围变量声明测试: 把 span 声明成范围变量都算
     ' ====================
 
     <TestMethod>
-    Public Sub TestRestrictedTypeAsRangeVariable()
-        Dim snippetContent = "Dim query = From span In arr Select span"
+    Public Sub TestRestrictedTypeInSelectRangeVariable()
+        Dim snippetContent = "Dim q = From a In arr Select a, g = span"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     <TestMethod>
-    Public Sub TestRestrictedTypeInAggregateQuery()
-        Dim snippetContent = "Dim result = arr.Aggregate(Function(acc, x) span)"
+    Public Sub TestRestrictedTypeInLetRangeVariable()
+        Dim snippetContent = "Dim q = From a In arr Let b = span Select a, b"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     <TestMethod>
-    Public Sub TestRestrictedTypeInSelectMany()
-        Dim snippetContent = "Dim query = From x In arr From y In span Select x, y"
+    Public Sub TestRestrictedTypeAsSpanInSelectRangeVariable()
+        Dim snippetContent = "Dim q = From a In arr Select a, g = arr.AsSpan"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestRestrictedTypeAsSpanInLetRangeVariable()
+        Dim snippetContent = "Dim q = From a In arr Let b = arr.AsSpan Select a, b"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestRestrictedTypeInGroupByRangeVariable()
+        Dim snippetContent = "Dim q = From a In arr Group By span Into Group"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 

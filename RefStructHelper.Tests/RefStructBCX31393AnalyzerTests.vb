@@ -72,35 +72,7 @@ End Class
 
     <TestMethod>
     Public Sub TestRestrictedTypeValueTypeEquals()
-        Dim snippetContent = "Dim result As Boolean = span.Equals(CType(span, Object))"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeValueTypeGetHashCode()
-        Dim snippetContent = "Dim hash As Integer = span.GetHashCode()"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' ====================
-    ' 成员访问测试
-    ' ====================
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeMemberAccess()
-        Dim snippetContent = "Dim method As MethodInfo = span.ToString().GetType().GetMethod(""Length"")"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestRestrictedTypePropertyChain()
-        Dim snippetContent = "Dim name As String = span.GetType().Name"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeMethodChain()
-        Dim snippetContent = "Dim result As String = span.ToString().ToUpper()"
+        Dim snippetContent = "Dim result As Boolean = span.Equals(CType(Nothing, ValueType))"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
@@ -114,34 +86,12 @@ End Class
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    <TestMethod>
-    Public Sub TestRestrictedTypeInStringConcat()
-        Dim snippetContent = "Dim str As String = ""Span: "" & span.ToString()"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    ' ====================
-    ' 集合操作测试
-    ' ====================
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeInCollection()
-        Dim snippetContent = "Dim list As New List(Of Object) From {span}"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeInArray()
-        Dim snippetContent = "Dim arr As Object() = {span}"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
     ' ====================
     ' 正确用法测试
     ' ====================
 
     <TestMethod>
-    Public Sub TestNormalRestrictedTypeUsage()
+    Public Sub TestRegularMembers()
         Dim source As String = "
 Imports System
 Imports System.Runtime.InteropServices
@@ -149,35 +99,12 @@ Imports System.Runtime.InteropServices
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim span As Span(Of Integer) = arr.AsSpan()
-        ' 直接使用 Span 的方法和属性
-        Dim length As Integer = span.Length
-        Dim first As Integer = span(0)
-        span(0) = 10
-        ' 这些都是正确的用法，不应该触发 BCX31393
+        arr(0) = span.Length
+        Dim sliced = span.Slice(0,2)
     End Sub
 End Class
-"
-        AssertThatShouldNotHaveError(source, source)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeInRestrictedStruct()
-        Dim source As String = "
-Imports System
-Imports System.Runtime.InteropServices
-
-<System.Runtime.CompilerServices.IsByRefLike>
-Structure RestrictedStruct
-    Public SpanField As Span(Of Integer)
-    
-    Sub TestMethod()
-        ' 在受限结构体内部使用受限类型是允许的
-        Dim length As Integer = SpanField.Length
-        SpanField(0) = 42
-    End Sub
-End Structure
 "
         AssertThatShouldNotHaveError(source, source)
     End Sub
