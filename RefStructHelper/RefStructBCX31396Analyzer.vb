@@ -269,6 +269,14 @@ Public Class RefStructBCX31396Analyzer
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
+        ' 注意：Dim nullableSpan? As Span(Of Integer) 和 Dim nullableSpan As Span(Of Integer)? 是两码事！
+        ' Dim nullableSpan? As Span(Of Integer) 的 As 语句的类型是 Span(Of Integer)
+        ' Dim nullableSpan As Span(Of Integer)? 的 As 语句的类型是 Span(Of Integer)?
+        ' Dim nullableSpan? As Span(Of Integer) 的 name.Nullable <> Nothing
+        ' Dim nullableSpan As Span(Of Integer)? 的 name.Nullable = Nothing
+        ' Dim nullableSpan() As Span(Of Integer) 的 name.ArrayRankSpecifiers.Count > 0
+        ' Dim nullableSpan As Span(Of Integer)() 的 name.ArrayRankSpecifiers.Count = 0
+
         ' Check each declarator in the declaration
         For Each declarator In localDeclNode.Declarators
             ' Initializer is Nullable(Of RestrictedType)
