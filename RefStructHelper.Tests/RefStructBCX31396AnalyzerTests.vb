@@ -11,7 +11,7 @@ Public Class RefStructBCX31396AnalyzerTests
 
     Private Shared Sub AssertThatShouldNotHaveError(snippetContent As String, source As String)
         With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
-            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31396"), $"应该检测到 BCX31396 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31396"), $"不应该检测到 BCX31396 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
