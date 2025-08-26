@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-' һЩ������ SymbolHelper
+' 一些工具在 SymbolHelper
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class RefStructBCX31396Analyzer
     Inherits DiagnosticAnalyzer
@@ -58,6 +58,7 @@ Public Class RefStructBCX31396Analyzer
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeVariableDeclarator(ctx, restrictedTypeCache), SyntaxKind.VariableDeclarator)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeEqualsValue(ctx, restrictedTypeCache), SyntaxKind.EqualsValue)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeObjectCollectionInitializer(ctx, restrictedTypeCache), SyntaxKind.ObjectCollectionInitializer)
+        ' TODO: check for As statement of Function
     End Sub
 
     Private Function IsOptionRestrictEnabled(compilation As Compilation) As Boolean
@@ -270,7 +271,7 @@ Public Class RefStructBCX31396Analyzer
 
         ' Check each declarator in the declaration
         For Each declarator In localDeclNode.Declarators
-            ' Check if there's an initializer
+            ' Initializer is Nullable(Of RestrictedType)
             If declarator.Initializer IsNot Nothing Then
                 ' Get the type of the variable being declared
                 Dim variableType As ITypeSymbol
@@ -282,30 +283,38 @@ Public Class RefStructBCX31396Analyzer
                     variableType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
                 End If
 
-                ' Check if the variable type is restricted
-                If variableType IsNot Nothing AndAlso IsRestrictedType(variableType, restrictedTypeCache) Then
-                    Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.GetLocation(), variableType.Name)
-                    context.ReportDiagnostic(diagnostic)
+                ' Only check for restricted types if the variable type is Nullable(Of T)
+                If variableType IsNot Nothing AndAlso IsNullableOfType(variableType) Then
+                    ' Get the underlying type T from Nullable(Of T)
+                    Dim underlyingType = GetNullableUnderlyingType(variableType)
+                    If underlyingType IsNot Nothing AndAlso IsRestrictedType(underlyingType, restrictedTypeCache) Then
+                        Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.GetLocation(), underlyingType.Name)
+                        context.ReportDiagnostic(diagnostic)
+                    End If
                 End If
             End If
 
-            ' Check for nullable type inference (e.g., Dim nullableSpan? = span)
+            ' Check for nullable type inference
             ' Look for the question token in the identifier
             For Each name In declarator.Names
-                If Not name.Nullable.IsMissing Then
-                    ' Check if the nullable token is a question mark
-                    If name.Nullable.IsKind(SyntaxKind.QuestionToken) Then
-                        ' Get the inferred type from the initializer
-                        If declarator.Initializer IsNot Nothing Then
-                            Dim initializerType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
-                            If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType, restrictedTypeCache) Then
-                                Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, name.Nullable.GetLocation(), initializerType.Name)
-                                context.ReportDiagnostic(diagnostic)
-                            End If
+                ' Check if the nullable token is a question mark
+                If name.Nullable <> Nothing Then
+                    ' Get the inferred type from the initializer
+                    If declarator.Initializer IsNot Nothing Then
+                        ' Check for Dim nullableSpan? = span
+                        Dim initializerType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
+                        If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType, restrictedTypeCache) Then
+                            Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, name.GetLocation(), initializerType.Name)
+                            context.ReportDiagnostic(diagnostic)
                         End If
+                    Else
+                        ' TODO:Check for Dim nullableSpan? As Span(Of Integer)
+
                     End If
                 End If
             Next
+
+            ' TODO:Check for Dim nullableSpan() As Span(Of Integer)
         Next
     End Sub
 
@@ -367,5 +376,30 @@ Public Class RefStructBCX31396Analyzer
             Next
         End If
     End Sub
+
+    ' 添加辅助方法来检查类型是否为 Nullable(Of T)
+    Private Function IsNullableOfType(typeSymbol As ITypeSymbol) As Boolean
+        If typeSymbol Is Nothing Then Return False
+
+        ' 检查是否为命名类型且是泛型类型
+        Dim namedType = TryCast(typeSymbol, INamedTypeSymbol)
+        If namedType Is Nothing Then Return False
+
+        ' 检查是否为 Nullable(Of T) 类型
+        If namedType.IsGenericType AndAlso namedType.ConstructedFrom?.SpecialType = SpecialType.System_Nullable_T Then
+            Return True
+        End If
+
+        Return False
+    End Function
+
+    ' 添加辅助方法来获取 Nullable(Of T) 中的 T 类型
+    Private Function GetNullableUnderlyingType(nullableType As ITypeSymbol) As ITypeSymbol
+        Dim namedType = TryCast(nullableType, INamedTypeSymbol)
+        If namedType IsNot Nothing AndAlso namedType.IsGenericType Then
+            Return namedType.TypeArguments.FirstOrDefault()
+        End If
+        Return Nothing
+    End Function
 
 End Class

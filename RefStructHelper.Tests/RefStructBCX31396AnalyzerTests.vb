@@ -412,7 +412,7 @@ Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
-    Function TestReturn() As Span(Of Integer)
+    Function TestReturn() As Span(Of Integer) ' 应该在这报错，返回类型是受限类型
         Dim arr As Integer() = {1, 2, 3, 4, 5}
         Dim span As Span(Of Integer) = arr.AsSpan()
         Return span
