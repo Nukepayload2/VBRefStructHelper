@@ -58,7 +58,22 @@ Public Class RefStructBCX31396Analyzer
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeVariableDeclarator(ctx, restrictedTypeCache), SyntaxKind.VariableDeclarator)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeEqualsValue(ctx, restrictedTypeCache), SyntaxKind.EqualsValue)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeObjectCollectionInitializer(ctx, restrictedTypeCache), SyntaxKind.ObjectCollectionInitializer)
-        ' TODO: check for As statement of Function
+        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeFunctionReturn(ctx, restrictedTypeCache), SyntaxKind.FunctionStatement)
+    End Sub
+
+    Private Sub AnalyzeFunctionReturn(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+        Dim functionNode = DirectCast(context.Node, MethodStatementSyntax)
+        Dim semanticModel = context.SemanticModel
+        Dim cancellationToken = context.CancellationToken
+
+        ' Check function return type
+        If functionNode.AsClause IsNot Nothing Then
+            Dim returnType = semanticModel.GetTypeInfo(functionNode.AsClause.Type, cancellationToken).Type
+            If returnType IsNot Nothing AndAlso IsRestrictedType(returnType, restrictedTypeCache) Then
+                Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, functionNode.AsClause.Type.GetLocation(), returnType.Name)
+                context.ReportDiagnostic(diagnostic)
+            End If
+        End If
     End Sub
 
     Private Function IsOptionRestrictEnabled(compilation As Compilation) As Boolean
@@ -316,13 +331,34 @@ Public Class RefStructBCX31396Analyzer
                             context.ReportDiagnostic(diagnostic)
                         End If
                     Else
-                        ' TODO:Check for Dim nullableSpan? As Span(Of Integer)
-
+                        ' Check for Dim nullableSpan? As Span(Of Integer)
+                        ' 这种情况下 name.Nullable <> Nothing 但没有初始化器
+                        ' 需要检查 AsClause 的类型是否为受限类型
+                        If declarator.AsClause IsNot Nothing Then
+                            Dim asType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
+                            If asType IsNot Nothing AndAlso IsRestrictedType(asType, restrictedTypeCache) Then
+                                Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), asType.Name)
+                                context.ReportDiagnostic(diagnostic)
+                            End If
+                        End If
                     End If
                 End If
             Next
 
-            ' TODO:Check for Dim nullableSpan() As Span(Of Integer)
+            ' Check for Dim nullableSpan() As Span(Of Integer)
+            ' 检查数组声明：每个 name 的 ArrayRankSpecifiers.Count > 0
+            For Each name In declarator.Names
+                If name.ArrayRankSpecifiers.Count > 0 Then
+                    ' 这是数组声明，检查 AsClause 的类型是否为受限类型
+                    If declarator.AsClause IsNot Nothing Then
+                        Dim asType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
+                        If asType IsNot Nothing AndAlso IsRestrictedType(asType, restrictedTypeCache) Then
+                            Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), asType.Name)
+                            context.ReportDiagnostic(diagnostic)
+                        End If
+                    End If
+                End If
+            Next
         Next
     End Sub
 
