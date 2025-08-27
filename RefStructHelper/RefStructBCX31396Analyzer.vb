@@ -45,7 +45,6 @@ Public Class RefStructBCX31396Analyzer
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzePropertyBlock(ctx, restrictedTypeCache), SyntaxKind.PropertyBlock)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeParameter(ctx, restrictedTypeCache), SyntaxKind.Parameter)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeAnonymousObjectCreation(ctx, restrictedTypeCache), SyntaxKind.AnonymousObjectCreationExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeObjectCreation(ctx, restrictedTypeCache), SyntaxKind.ObjectCreationExpression)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeCollectionInitializer(ctx, restrictedTypeCache), SyntaxKind.CollectionInitializer)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeArrayLiteral(ctx, restrictedTypeCache), SyntaxKind.CollectionInitializer)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeLocalDeclaration(ctx, restrictedTypeCache), SyntaxKind.LocalDeclarationStatement)
@@ -226,27 +225,6 @@ Public Class RefStructBCX31396Analyzer
                     Dim initializerType = semanticModel.GetTypeInfo(fieldInitExpr, cancellationToken).Type
                     If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType, restrictedTypeCache) Then
                         Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, fieldInitExpr.GetLocation(), initializerType.Name)
-                        context.ReportDiagnostic(diagnostic)
-                    End If
-                End If
-            Next
-        End If
-    End Sub
-
-    Private Sub AnalyzeObjectCreation(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
-        Dim creationNode = DirectCast(context.Node, ObjectCreationExpressionSyntax)
-        Dim semanticModel = context.SemanticModel
-        Dim cancellationToken = context.CancellationToken
-
-        ' Check each argument in the object creation
-        If creationNode.ArgumentList IsNot Nothing Then
-            For Each arg In creationNode.ArgumentList.Arguments
-                Dim argNode = TryCast(arg, SimpleArgumentSyntax)
-                If argNode IsNot Nothing Then
-                    Dim argType = semanticModel.GetTypeInfo(argNode.Expression, cancellationToken).Type
-                    If argType IsNot Nothing AndAlso IsRestrictedType(argType, restrictedTypeCache) Then
-                        ' Check if this is a collection initializer context
-                        Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, argNode.Expression.GetLocation(), argType.Name)
                         context.ReportDiagnostic(diagnostic)
                     End If
                 End If
