@@ -10,6 +10,8 @@ Public Class RestrictedTypeUsageDemo
         Dim nullableSpan As Span(Of Integer)? = Nothing  ' 这应该触发 BCX31396
         Dim nullableSpan2? As Span(Of Integer) = Nothing  ' 这应该触发 BCX31396
 
+        Static somethine As Span(Of Integer) = span  ' 这应该触发 BCX31396
+
         ' 数组类型声明
         Dim spanArray As Span(Of Integer)()  ' 这应该触发 BCX31396
         Dim spanArray2() As Span(Of Integer)  ' 这应该触发 BCX31396

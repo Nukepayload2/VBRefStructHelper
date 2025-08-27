@@ -229,6 +229,13 @@ End Class
         AssertThatShouldHaveError(source, source)
     End Sub
 
+    <TestMethod>
+    Public Sub TestSpanStaticLocal()
+        ' Static 会编译成字段加上线程同步代码，属于类的字段
+        Dim snippetContent = "Static somethine As Span(Of Integer) = span"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
     ' ====================
     ' 匿名类型成员测试
     ' ====================
