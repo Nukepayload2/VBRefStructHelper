@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Nukepayload2.CompilerServices.InteriorPointer" Version="1.1.3-beta8" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\RefStructHelper\RefStructHelper.vbproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
