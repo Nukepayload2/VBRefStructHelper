@@ -22,9 +22,14 @@ Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
+
+    <System.Runtime.CompilerServices.IsByRefLike>
+    Private Structure DemoType
+
+    End Structure
+
     Sub TestMethod()
-        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim span As Span(Of Integer) = arr.AsSpan()
+        Dim span As DemoType
         {snippetContent}
     End Sub
 End Class
@@ -38,31 +43,25 @@ End Class
 
     <TestMethod>
     Public Sub TestRestrictedTypeToString()
-        Dim snippetContent = "Dim str As String = span.ToString()"
+        Dim snippetContent = "span.ToString()"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     <TestMethod>
     Public Sub TestRestrictedTypeEquals()
-        Dim snippetContent = "Dim result As Boolean = span.Equals(span)"
+        Dim snippetContent = "span.Equals(span)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     <TestMethod>
     Public Sub TestRestrictedTypeGetHashCode()
-        Dim snippetContent = "Dim hash As Integer = span.GetHashCode()"
+        Dim snippetContent = "span.GetHashCode()"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     <TestMethod>
     Public Sub TestRestrictedTypeGetType()
-        Dim snippetContent = "Dim type As Type = span.GetType()"
-        AssertThatDiagTriggeredInSub(snippetContent)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestRestrictedTypeReferenceEquals()
-        Dim snippetContent = "Dim result As Boolean = ReferenceEquals(span, span)"
+        Dim snippetContent = "span.GetType()"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
@@ -101,6 +100,7 @@ Class TestClass
     Sub TestMethod()
         Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim span As Span(Of Integer) = arr.AsSpan()
+        Dim allowString = span.ToString()
         arr(0) = span.Length
         Dim sliced = span.Slice(0,2)
     End Sub

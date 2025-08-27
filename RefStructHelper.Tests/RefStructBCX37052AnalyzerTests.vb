@@ -119,7 +119,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 参数/连续调用中的受限类型测试（不应该触发）
+    ' 参数/连续调用中的受限类型测试
     ' ====================
 
     <TestMethod>
@@ -137,7 +137,8 @@ Class TestClass
     End Function
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        ' 参数进入闭包，并非内存安全
+        AssertThatShouldHaveError(source, source)
     End Sub
 
     <TestMethod>
@@ -156,6 +157,7 @@ Class TestClass
     End Function
 End Class
 "
+        ' 连续调用允许，因为没有产生 Span 闭包
         AssertThatShouldNotHaveError(source, source)
     End Sub
 
@@ -173,7 +175,8 @@ Class TestClass
     End Function
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        ' 参数进入闭包，并非内存安全
+        AssertThatShouldHaveError(source, source)
     End Sub
 
     <TestMethod>
@@ -192,6 +195,7 @@ Class TestClass
     End Function
 End Class
 "
+        ' 连续调用允许，因为没有产生 Span 闭包
         AssertThatShouldNotHaveError(source, source)
     End Sub
 

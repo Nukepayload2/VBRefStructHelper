@@ -3,14 +3,13 @@ Imports Microsoft.CodeAnalysis
 
 Module SymbolHelper
 
-    Function IsObjectType(typeSymbol As ITypeSymbol) As Boolean
+    Function IsReferenceType(typeSymbol As ITypeSymbol) As Boolean
         If typeSymbol Is Nothing Then Return False
-        Return typeSymbol.SpecialType = SpecialType.System_Object
-    End Function
-
-    Function IsValueTypeType(typeSymbol As ITypeSymbol) As Boolean
-        If typeSymbol Is Nothing Then Return False
-        Return typeSymbol.SpecialType = SpecialType.System_ValueType
+        Dim ts = TryCast(typeSymbol, INamedTypeSymbol)
+        If ts IsNot Nothing Then
+            Return ts.TypeKind <> TypeKind.Structure
+        End If
+        Return typeSymbol.SpecialType = SpecialType.System_Object OrElse typeSymbol.SpecialType = SpecialType.System_ValueType
     End Function
 
     Function IsRestrictedType(typeSymbol As ITypeSymbol, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean)) As Boolean

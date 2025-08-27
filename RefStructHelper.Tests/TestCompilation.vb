@@ -35,7 +35,7 @@ Module TestCompilation
         )
 
         ' 运行我们的分析器
-        Dim analyzer1 As New RefStructConvertToBoxedTypeAnalyzer
+        Dim analyzer1 As New RefStructBCX31394Analyzer
         Dim analyzer2 As New RefStructBCX31396Analyzer
         Dim analyzer3 As New RefStructBCX32061Analyzer
         Dim analyzer4 As New RefStructBCX36598Analyzer
@@ -44,10 +44,6 @@ Module TestCompilation
         Dim analyzer7 As New RefStructBCX31393Analyzer
         Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)({analyzer1, analyzer2, analyzer3, analyzer4, analyzer5, analyzer6, analyzer7})
 
-        ' 创建模拟的 AnalyzerConfigOptions 来启用 OptionRestrict
-        Dim globalOptions = New Dictionary(Of String, String) From {
-            {"build_property.OptionRestrict", "On"}
-        }
         Dim analyzerOptions = New AnalyzerOptions(ImmutableArray(Of AdditionalText).Empty)
 
         Dim compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, analyzerOptions)

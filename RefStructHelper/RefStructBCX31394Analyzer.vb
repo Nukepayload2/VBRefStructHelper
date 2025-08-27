@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 ' 一些工具在 SymbolHelper
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Public Class RefStructConvertToBoxedTypeAnalyzer
+Public Class RefStructBCX31394Analyzer
     Inherits DiagnosticAnalyzer
 
     Public Const DiagnosticId = "BCX31394"
@@ -245,7 +245,7 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
                                           <CallerMemberName> Optional callerName As String = Nothing)
         ' Check if this is a restricted type being converted to Object or ValueType
         If expressionType Is Nothing OrElse targetType Is Nothing Then Return
-        If IsRestrictedType(expressionType, restrictedTypeCache) AndAlso (IsObjectType(targetType) OrElse IsValueTypeType(targetType)) Then
+        If IsRestrictedType(expressionType, restrictedTypeCache) AndAlso IsReferenceType(targetType) Then
             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, node.GetLocation(), expressionType.Name)
             context.ReportDiagnostic(diagnostic)
         End If

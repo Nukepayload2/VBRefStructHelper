@@ -67,6 +67,10 @@ Public Class RestrictedTypeUsageDemo
         Return span
     End Function
 
+    Shared Narrowing Operator CType(instance As RestrictedTypeUsageDemo) As Span(Of Integer) ' 这应该触发 BCX31396
+        Throw New NotSupportedException
+    End Operator
+
     Sub CorrectUsages()
         Dim arr As Integer() = {1, 2, 3, 4, 5}
         Dim span As Span(Of Integer) = arr.AsSpan()

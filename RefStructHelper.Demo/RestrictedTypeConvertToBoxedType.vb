@@ -1,6 +1,15 @@
 <Obsolete("Suppress default ref struct obsolete errors")>
-Public Class RefStructConvertToBoxedType
+Public Class RestrictedTypeConvertToBoxedType
     ' 演示 Span 类型的各种错误用法
+
+    <System.Runtime.CompilerServices.IsByRefLike>
+    Private Structure DemoType
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Throw New NotSupportedException()
+        End Sub
+    End Structure
 
     Sub WrongUsagesTypeCast()
         Dim arr As Integer() = {1, 2, 3, 4, 5}
@@ -18,7 +27,9 @@ Public Class RefStructConvertToBoxedType
         Dim vt3 As ValueType = TryCast(span, ValueType)  ' 这应该触发 BCX31394
         Dim vt4 As ValueType = DirectCast(span, ValueType)  ' 这应该触发 BCX31394
 
-        Dim sth As New Something With {.SomeValue = span}
+        Dim sth As New Something With {.SomeValue = span} ' 这应该触发 BCX31394
+
+        Dim oops As IDisposable = New DemoType ' 这应该触发 BCX31394
     End Sub
 
     ' 辅助方法

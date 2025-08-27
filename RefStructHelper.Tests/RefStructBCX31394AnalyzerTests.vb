@@ -1,7 +1,7 @@
 ﻿Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
-Public Class RefStructConvertToBoxedTypeAnalyzerTests
+Public Class RefStructBCX31394AnalyzerTests
 
     Private Sub AssertThatDiagTriggeredInSub(snippetContent As String)
         Dim source As String = $"
@@ -60,6 +60,19 @@ End Class
     <TestMethod>
     Public Sub TestDirectCastSpanToObject()
         Dim snippetContent = "Dim obj As Object = DirectCast(span, Object)"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod, Ignore("与 Option Strict 重叠了，不用实现")>
+    Public Sub TestRestrictedTypeEqualsOperatorObject()
+        Dim snippetContent = "Dim wrong = span = CObj(0)"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    ' 使用等号运算符把 span 与 ValueType 比较
+    <TestMethod, Ignore("与 Option Strict 重叠了，不用实现")>
+    Public Sub TestRestrictedTypeEqualsOperatorValueType()
+        Dim snippetContent = "Dim wrong = span = CType(Nothing, ValueType)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 

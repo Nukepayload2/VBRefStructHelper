@@ -79,22 +79,21 @@ Public Class RefStructBCX31393Analyzer
         Dim symbolInfo = semanticModel.GetSymbolInfo(invocation, cancellationToken)
         If symbolInfo.Symbol IsNot Nothing AndAlso TypeOf symbolInfo.Symbol Is IMethodSymbol Then
             Dim methodSymbol = DirectCast(symbolInfo.Symbol, IMethodSymbol)
-            
+
             ' Check if this is ReferenceEquals or similar static method
-            If methodSymbol.IsStatic AndAlso 
-               (methodSymbol.Name = "ReferenceEquals" OrElse 
-                methodSymbol.Parameters.Any(Function(p) SymbolEqualityComparer.Default.Equals(p.Type, objectType))) Then
-                
+            If methodSymbol.IsStatic AndAlso
+               (methodSymbol.Parameters.Any(Function(p) SymbolEqualityComparer.Default.Equals(p.Type, objectType))) Then
+
                 ' Check each argument to see if any restricted types are being passed as Object parameters
                 If invocation.ArgumentList IsNot Nothing Then
                     For i = 0 To Math.Min(invocation.ArgumentList.Arguments.Count - 1, methodSymbol.Parameters.Length - 1)
                         Dim argument = invocation.ArgumentList.Arguments(i)
                         Dim parameter = methodSymbol.Parameters(i)
-                        
+
                         ' If parameter expects Object/ValueType but argument is restricted type
-                        If (SymbolEqualityComparer.Default.Equals(parameter.Type, objectType) OrElse 
+                        If (SymbolEqualityComparer.Default.Equals(parameter.Type, objectType) OrElse
                             SymbolEqualityComparer.Default.Equals(parameter.Type, valueType)) Then
-                            
+
                             If TypeOf argument Is SimpleArgumentSyntax Then
                                 Dim simpleArg = DirectCast(argument, SimpleArgumentSyntax)
                                 Dim argType = semanticModel.GetTypeInfo(simpleArg.Expression, cancellationToken).Type
@@ -108,7 +107,7 @@ Public Class RefStructBCX31393Analyzer
             End If
         End If
 
-        ' Also check member access invocations (like span.ToString())
+        ' Also check member access invocations
         If TypeOf invocation.Expression Is MemberAccessExpressionSyntax Then
             Dim memberAccess = DirectCast(invocation.Expression, MemberAccessExpressionSyntax)
             Dim expressionType = semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type
@@ -147,21 +146,10 @@ Public Class RefStructBCX31393Analyzer
         If TypeOf symbol Is IMethodSymbol Then
             Dim methodSymbol = DirectCast(symbol, IMethodSymbol)
             Dim containingType = methodSymbol.ContainingType
-            
+
             ' Check if the method is defined in Object or ValueType
-            If SymbolEqualityComparer.Default.Equals(containingType, objectType) OrElse 
+            If SymbolEqualityComparer.Default.Equals(containingType, objectType) OrElse
                SymbolEqualityComparer.Default.Equals(containingType, valueType) Then
-                Return True
-            End If
-            
-            ' Check well-known Object methods by name
-            If methodSymbol.Name = "ToString" AndAlso methodSymbol.Parameters.Length = 0 Then
-                Return True
-            ElseIf methodSymbol.Name = "Equals" Then
-                Return True
-            ElseIf methodSymbol.Name = "GetHashCode" AndAlso methodSymbol.Parameters.Length = 0 Then
-                Return True
-            ElseIf methodSymbol.Name = "GetType" AndAlso methodSymbol.Parameters.Length = 0 Then
                 Return True
             End If
         End If

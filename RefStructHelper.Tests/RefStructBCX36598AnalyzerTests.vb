@@ -117,6 +117,24 @@ End Class
     End Sub
 
     <TestMethod>
+    Public Sub TestComboLinqUsageInFromIn()
+        Dim source As String = "
+Imports System
+Imports System.Linq
+
+Class TestClass
+    Sub TestMethod()
+        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim query = From item In arr.AsSpan.ToArray Where item > 0 Select item
+        Dim result = query.ToList()
+    End Sub
+End Class
+"
+        ' 这是个特例，连续调用的结果如果不是受限类型，那么是允许的
+        AssertThatShouldNotHaveError(source, source)
+    End Sub
+
+    <TestMethod>
     Public Sub TestNormalLinqWithNormalTypes()
         Dim source As String = "
 Imports System

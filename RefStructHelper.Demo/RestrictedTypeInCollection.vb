@@ -1,5 +1,5 @@
 <Obsolete("Suppress default ref struct obsolete errors")>
-Public Class RefStructInCollection
+Public Class RestrictedTypeInCollection
 
     Sub WrongUsages()
         Dim arr As Integer() = {1, 2, 3, 4, 5}

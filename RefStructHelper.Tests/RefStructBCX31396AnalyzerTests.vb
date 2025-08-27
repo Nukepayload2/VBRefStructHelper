@@ -422,6 +422,24 @@ End Class
         AssertThatShouldHaveError(source, source)
     End Sub
 
+    <TestMethod>
+    Public Sub TestOperatorReturnRestrictedType()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+
+    Shared Narrowing Operator CType(instance As TestClass) As Span(Of Integer) ' 这应该触发 BCX31396
+        Throw New NotSupportedException
+    End Operator
+
+End Class
+"
+        AssertThatShouldHaveError(source, source)
+    End Sub
+
     ' ====================
     ' 误判测试
     ' ====================
