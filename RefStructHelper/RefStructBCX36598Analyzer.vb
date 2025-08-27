@@ -41,195 +41,28 @@ Public Class RefStructBCX36598Analyzer
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeQueryExpression(ctx, restrictedTypeCache), SyntaxKind.QueryExpression)
     End Sub
 
-
-    Private Sub AnalyzeQueryExpression(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
-        Dim queryNode = DirectCast(context.Node, QueryExpressionSyntax)
-        Dim semanticModel = context.SemanticModel
-        Dim cancellationToken = context.CancellationToken
-
-        ' Search for all nodes in the query expression that could involve restricted types
-        For Each node In queryNode.DescendantNodesAndSelf()
-            Select Case node.Kind()
-                Case SyntaxKind.IdentifierName
-                    Dim identifier = DirectCast(node, IdentifierNameSyntax)
-                    CheckIdentifierForRestrictedType(identifier, context, restrictedTypeCache, semanticModel, cancellationToken)
-                
-                Case SyntaxKind.SimpleMemberAccessExpression
-                    Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
-                    CheckMemberAccessForRestrictedType(memberAccess, context, restrictedTypeCache, semanticModel, cancellationToken)
-                
-                Case SyntaxKind.InvocationExpression
-                    Dim invocation = DirectCast(node, InvocationExpressionSyntax)
-                    CheckInvocationForRestrictedType(invocation, context, restrictedTypeCache, semanticModel, cancellationToken)
-            End Select
-        Next
-    End Sub
-
-    Private Sub AnalyzeQueryClause(clause As QueryClauseSyntax, context As SyntaxNodeAnalysisContext, 
-                                  restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                  semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
-        Select Case clause.Kind()
-            Case SyntaxKind.FromClause
-                AnalyzeFromClause(DirectCast(clause, FromClauseSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-            
-            Case SyntaxKind.LetClause
-                AnalyzeLetClause(DirectCast(clause, LetClauseSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-            
-            Case SyntaxKind.WhereClause
-                AnalyzeWhereClause(DirectCast(clause, WhereClauseSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-            
-            Case SyntaxKind.SelectClause
-                AnalyzeSelectClause(DirectCast(clause, SelectClauseSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-            
-            Case SyntaxKind.GroupByClause
-                AnalyzeGroupByClause(DirectCast(clause, GroupByClauseSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-            
-            Case SyntaxKind.OrderByClause
-                AnalyzeOrderByClause(DirectCast(clause, OrderByClauseSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-            
-            Case SyntaxKind.AggregateClause
-                AnalyzeAggregateClause(DirectCast(clause, AggregateClauseSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-        End Select
-    End Sub
-
-    Private Sub AnalyzeFromClause(fromClause As FromClauseSyntax, context As SyntaxNodeAnalysisContext,
-                                  restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                  semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
-        For Each variable In fromClause.Variables
-            ' Check the collection expression for restricted type usage
-            If variable.Expression IsNot Nothing Then
-                CheckExpressionForRestrictedTypes(variable.Expression, context, restrictedTypeCache, semanticModel, cancellationToken)
-            End If
-            
-            ' Check if the range variable itself is of a restricted type
-            If variable.AsClause IsNot Nothing Then
-                Dim rangeVariableType = semanticModel.GetTypeInfo(variable.AsClause.Type, cancellationToken).Type
-                If rangeVariableType IsNot Nothing AndAlso IsRestrictedType(rangeVariableType, restrictedTypeCache) Then
-                    ReportDiagnostic(context, variable.AsClause.Type, rangeVariableType)
-                End If
-            End If
-        Next
-    End Sub
-
-    Private Sub AnalyzeLetClause(letClause As LetClauseSyntax, context As SyntaxNodeAnalysisContext,
-                                restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
-        For Each variable In letClause.Variables
-            If variable.Expression IsNot Nothing Then
-                ' Check if the expression evaluates to a restricted type (range variable declaration)
-                Dim exprType = semanticModel.GetTypeInfo(variable.Expression, cancellationToken).Type
-                If exprType IsNot Nothing AndAlso IsRestrictedType(exprType, restrictedTypeCache) Then
-                    ReportDiagnostic(context, variable.Expression, exprType)
-                End If
-                
-                ' Check for closure capture of restricted types within the expression
-                CheckExpressionForRestrictedTypes(variable.Expression, context, restrictedTypeCache, semanticModel, cancellationToken)
-            End If
-        Next
-    End Sub
-
-    Private Sub AnalyzeWhereClause(whereClause As WhereClauseSyntax, context As SyntaxNodeAnalysisContext,
-                                  restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                  semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
-        CheckExpressionForRestrictedTypes(whereClause.Condition, context, restrictedTypeCache, semanticModel, cancellationToken)
-    End Sub
-
-    Private Sub AnalyzeSelectClause(selectClause As SelectClauseSyntax, context As SyntaxNodeAnalysisContext,
-                                   restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                   semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
-        For Each variable In selectClause.Variables
-            If variable.Expression IsNot Nothing Then
-                ' Check if the expression evaluates to a restricted type (range variable declaration)
-                Dim exprType = semanticModel.GetTypeInfo(variable.Expression, cancellationToken).Type
-                If exprType IsNot Nothing AndAlso IsRestrictedType(exprType, restrictedTypeCache) Then
-                    ReportDiagnostic(context, variable.Expression, exprType)
-                End If
-                
-                ' Check for closure capture of restricted types within the expression
-                CheckExpressionForRestrictedTypes(variable.Expression, context, restrictedTypeCache, semanticModel, cancellationToken)
-            End If
-        Next
-    End Sub
-
-    Private Sub AnalyzeGroupByClause(groupByClause As GroupByClauseSyntax, context As SyntaxNodeAnalysisContext,
-                                    restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                    semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
-        For Each item In groupByClause.Items
-            If item.Expression IsNot Nothing Then
-                ' Check if the grouping key expression evaluates to a restricted type
-                Dim exprType = semanticModel.GetTypeInfo(item.Expression, cancellationToken).Type
-                If exprType IsNot Nothing AndAlso IsRestrictedType(exprType, restrictedTypeCache) Then
-                    ReportDiagnostic(context, item.Expression, exprType)
-                End If
-                
-                ' Check for closure capture of restricted types within the expression
-                CheckExpressionForRestrictedTypes(item.Expression, context, restrictedTypeCache, semanticModel, cancellationToken)
-            End If
-        Next
-        
-        ' Check aggregation functions in the Into clause
-        If groupByClause.AggregationVariables.Count > 0 Then
-            For Each aggVar In groupByClause.AggregationVariables
-                If aggVar.Aggregation IsNot Nothing Then
-                    CheckExpressionForRestrictedTypes(aggVar.Aggregation, context, restrictedTypeCache, semanticModel, cancellationToken)
-                End If
-            Next
-        End If
-    End Sub
-
-    Private Sub AnalyzeOrderByClause(orderByClause As OrderByClauseSyntax, context As SyntaxNodeAnalysisContext,
-                                    restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                    semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
-        For Each ordering In orderByClause.Orderings
-            If ordering.Expression IsNot Nothing Then
-                CheckExpressionForRestrictedTypes(ordering.Expression, context, restrictedTypeCache, semanticModel, cancellationToken)
-            End If
-        Next
-    End Sub
-
-    Private Sub AnalyzeAggregateClause(aggregateClause As AggregateClauseSyntax, context As SyntaxNodeAnalysisContext,
-                                      restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                      semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
-        For Each variable In aggregateClause.Variables
-            If variable.Expression IsNot Nothing Then
-                CheckExpressionForRestrictedTypes(variable.Expression, context, restrictedTypeCache, semanticModel, cancellationToken)
-            End If
-        Next
-        
-        If aggregateClause.AggregationVariables.Count > 0 Then
-            For Each aggVar In aggregateClause.AggregationVariables
-                If aggVar.Aggregation IsNot Nothing Then
-                    CheckExpressionForRestrictedTypes(aggVar.Aggregation, context, restrictedTypeCache, semanticModel, cancellationToken)
-                End If
-            Next
-        End If
-    End Sub
-
     Private Sub CheckExpressionForRestrictedTypes(expression As ExpressionSyntax, context As SyntaxNodeAnalysisContext,
                                                  restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
                                                  semanticModel As SemanticModel, cancellationToken As CancellationToken)
         
-        ' Walk through all descendant nodes to find identifier references
-        For Each node In expression.DescendantNodesAndSelf()
-            Select Case node.Kind()
-                Case SyntaxKind.IdentifierName
-                    CheckIdentifierForRestrictedType(DirectCast(node, IdentifierNameSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-                
-                Case SyntaxKind.SimpleMemberAccessExpression
-                    CheckMemberAccessForRestrictedType(DirectCast(node, MemberAccessExpressionSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-                
-                Case SyntaxKind.InvocationExpression
-                    CheckInvocationForRestrictedType(DirectCast(node, InvocationExpressionSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-            End Select
-        Next
+        ' Only check the current expression, not its descendants
+        Select Case expression.Kind()
+            Case SyntaxKind.IdentifierName
+                CheckIdentifierForRestrictedType(DirectCast(expression, IdentifierNameSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
+            
+            Case SyntaxKind.SimpleMemberAccessExpression
+                CheckMemberAccessForRestrictedType(DirectCast(expression, MemberAccessExpressionSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
+            
+            Case SyntaxKind.InvocationExpression
+                CheckInvocationForRestrictedType(DirectCast(expression, InvocationExpressionSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
+            
+            Case Else
+                ' For other expression types, check if the expression itself returns a restricted type
+                Dim exprType = semanticModel.GetTypeInfo(expression, cancellationToken).Type
+                If exprType IsNot Nothing AndAlso IsRestrictedType(exprType, restrictedTypeCache) Then
+                    ReportDiagnostic(context, expression, exprType)
+                End If
+        End Select
     End Sub
 
     Private Sub CheckIdentifierForRestrictedType(identifier As IdentifierNameSyntax, context As SyntaxNodeAnalysisContext,
@@ -265,12 +98,36 @@ Public Class RefStructBCX36598Analyzer
         ' Check the expression part of member access (e.g., 'span' in 'span.Length')
         Dim expressionType = semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type
         If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType, restrictedTypeCache) Then
+            ' Additional check: if this is part of a chain that eventually returns a non-restricted type, don't report
+            Dim parent = memberAccess.Parent
+            If parent IsNot Nothing AndAlso (parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) OrElse parent.IsKind(SyntaxKind.InvocationExpression)) Then
+                ' This is part of a chain like arr.AsSpan().ToArray() or arr.AsSpan.ToArray, don't report intermediate restricted types
+                Return
+            End If
+            ' Additional check: if the final result type is not restricted, don't report
+            Dim finalType = semanticModel.GetTypeInfo(memberAccess, cancellationToken).Type
+            If finalType IsNot Nothing AndAlso Not IsRestrictedType(finalType, restrictedTypeCache) Then
+                ' The final result is not restricted, so don't report intermediate restricted types
+                Return
+            End If
             ReportDiagnostic(context, memberAccess.Expression, expressionType)
         End If
         
         ' Also check if the member access itself returns a restricted type
         Dim memberAccessType = semanticModel.GetTypeInfo(memberAccess, cancellationToken).Type
         If memberAccessType IsNot Nothing AndAlso IsRestrictedType(memberAccessType, restrictedTypeCache) Then
+            ' Additional check: if this is part of a chain that eventually returns a non-restricted type, don't report
+            Dim parent = memberAccess.Parent
+            If parent IsNot Nothing AndAlso (parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) OrElse parent.IsKind(SyntaxKind.InvocationExpression)) Then
+                ' This is part of a chain like arr.AsSpan().ToArray() or arr.AsSpan.ToArray, don't report intermediate restricted types
+                Return
+            End If
+            ' Additional check: if the final result type is not restricted, don't report
+            Dim finalType = semanticModel.GetTypeInfo(memberAccess, cancellationToken).Type
+            If finalType IsNot Nothing AndAlso Not IsRestrictedType(finalType, restrictedTypeCache) Then
+                ' The final result is not restricted, so don't report intermediate restricted types
+                Return
+            End If
             ReportDiagnostic(context, memberAccess, memberAccessType)
         End If
     End Sub
@@ -282,6 +139,20 @@ Public Class RefStructBCX36598Analyzer
         ' Check if the invocation returns a restricted type (e.g., arr.AsSpan())
         Dim invocationType = semanticModel.GetTypeInfo(invocation, cancellationToken).Type
         If invocationType IsNot Nothing AndAlso IsRestrictedType(invocationType, restrictedTypeCache) Then
+            ' Additional check: if this is part of a chain that eventually returns a non-restricted type, don't report
+            Dim parent = invocation.Parent
+            If parent IsNot Nothing Then
+                ' Check if this is part of a member access chain
+                If parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
+                    ' This is part of a chain like arr.AsSpan().ToArray(), don't report intermediate restricted types
+                    Return
+                End If
+                ' Check if this is part of an invocation chain (method chaining)
+                If parent.IsKind(SyntaxKind.InvocationExpression) Then
+                    ' This is part of a chain like arr.AsSpan().ToArray(), don't report intermediate restricted types
+                    Return
+                End If
+            End If
             ReportDiagnostic(context, invocation, invocationType)
         End If
         
@@ -294,6 +165,29 @@ Public Class RefStructBCX36598Analyzer
                 End If
             Next
         End If
+    End Sub
+
+    Private Sub AnalyzeQueryExpression(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+        Dim queryNode = DirectCast(context.Node, QueryExpressionSyntax)
+        Dim semanticModel = context.SemanticModel
+        Dim cancellationToken = context.CancellationToken
+
+        ' Search for all nodes in the query expression that could involve restricted types
+        For Each node In queryNode.DescendantNodesAndSelf()
+            Select Case node.Kind()
+                Case SyntaxKind.IdentifierName
+                    Dim identifier = DirectCast(node, IdentifierNameSyntax)
+                    CheckIdentifierForRestrictedType(identifier, context, restrictedTypeCache, semanticModel, cancellationToken)
+                
+                Case SyntaxKind.SimpleMemberAccessExpression
+                    Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
+                    CheckMemberAccessForRestrictedType(memberAccess, context, restrictedTypeCache, semanticModel, cancellationToken)
+                
+                Case SyntaxKind.InvocationExpression
+                    Dim invocation = DirectCast(node, InvocationExpressionSyntax)
+                    CheckInvocationForRestrictedType(invocation, context, restrictedTypeCache, semanticModel, cancellationToken)
+            End Select
+        Next
     End Sub
 
     Private Sub ReportDiagnostic(context As SyntaxNodeAnalysisContext, syntaxNode As SyntaxNode, restrictedType As ITypeSymbol)

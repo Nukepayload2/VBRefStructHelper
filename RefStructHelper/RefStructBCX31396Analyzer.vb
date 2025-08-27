@@ -53,6 +53,7 @@ Public Class RefStructBCX31396Analyzer
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeEqualsValue(ctx, restrictedTypeCache), SyntaxKind.EqualsValue)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeObjectCollectionInitializer(ctx, restrictedTypeCache), SyntaxKind.ObjectCollectionInitializer)
         context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeFunctionReturn(ctx, restrictedTypeCache), SyntaxKind.FunctionStatement)
+        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeOperatorReturn(ctx, restrictedTypeCache), SyntaxKind.OperatorStatement)
     End Sub
 
     Private Sub AnalyzeFunctionReturn(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
@@ -65,6 +66,21 @@ Public Class RefStructBCX31396Analyzer
             Dim returnType = semanticModel.GetTypeInfo(functionNode.AsClause.Type, cancellationToken).Type
             If returnType IsNot Nothing AndAlso IsRestrictedType(returnType, restrictedTypeCache) Then
                 Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, functionNode.AsClause.Type.GetLocation(), returnType.Name)
+                context.ReportDiagnostic(diagnostic)
+            End If
+        End If
+    End Sub
+
+    Private Sub AnalyzeOperatorReturn(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+        Dim operatorNode = DirectCast(context.Node, OperatorStatementSyntax)
+        Dim semanticModel = context.SemanticModel
+        Dim cancellationToken = context.CancellationToken
+
+        ' Check operator return type
+        If operatorNode.AsClause IsNot Nothing Then
+            Dim returnType = semanticModel.GetTypeInfo(operatorNode.AsClause.Type, cancellationToken).Type
+            If returnType IsNot Nothing AndAlso IsRestrictedType(returnType, restrictedTypeCache) Then
+                Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, operatorNode.AsClause.Type.GetLocation(), returnType.Name)
                 context.ReportDiagnostic(diagnostic)
             End If
         End If

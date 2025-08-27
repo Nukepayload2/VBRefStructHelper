@@ -60,6 +60,35 @@ Public Class RefStructBCX37052Analyzer
                 AnalyzeVariableDeclarator(variableDeclarator, context, restrictedTypeCache, semanticModel, cancellationToken)
             End If
         Next
+        
+        ' Check method parameters
+        Dim methodStatement As MethodStatementSyntax = Nothing
+        Select Case methodBlock.Kind()
+            Case SyntaxKind.FunctionBlock
+                Dim functionBlock = DirectCast(methodBlock, MethodBlockSyntax)
+                methodStatement = DirectCast(functionBlock.BlockStatement, MethodStatementSyntax)
+            Case SyntaxKind.SubBlock
+                Dim subBlock = DirectCast(methodBlock, MethodBlockSyntax)
+                methodStatement = DirectCast(subBlock.BlockStatement, MethodStatementSyntax)
+        End Select
+
+        If methodStatement IsNot Nothing AndAlso methodStatement.ParameterList IsNot Nothing Then
+            For Each parameter In methodStatement.ParameterList.Parameters
+                AnalyzeParameter(parameter, context, restrictedTypeCache, semanticModel, cancellationToken)
+            Next
+        End If
+    End Sub
+
+    Private Sub AnalyzeParameter(parameter As ParameterSyntax, context As SyntaxNodeAnalysisContext,
+                               restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
+                               semanticModel As SemanticModel, cancellationToken As CancellationToken)
+        
+        If parameter.AsClause IsNot Nothing Then
+            Dim parameterType = semanticModel.GetTypeInfo(parameter.AsClause.Type, cancellationToken).Type
+            If parameterType IsNot Nothing AndAlso IsRestrictedType(parameterType, restrictedTypeCache) Then
+                ReportDiagnostic(context, parameter.AsClause.Type, parameterType)
+            End If
+        End If
     End Sub
 
     Private Function IsAsyncOrIteratorMethod(methodBlock As MethodBlockBaseSyntax) As Boolean
