@@ -23,7 +23,7 @@ Public Class RestrictedTypeLinqDemo
     Sub CorrectUsages()
         ' 正确的LINQ使用
         Dim arr As Integer() = {1, 2, 3, 4, 5}
-        Dim query = From item In arr Where item > 0 Select item
+        Dim query = From item In arr.AsSpan.ToArray Where item > 0 Select item
         Dim result = query.ToList()
     End Sub
 End Class

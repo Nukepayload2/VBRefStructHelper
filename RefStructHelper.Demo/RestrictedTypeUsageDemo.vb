@@ -71,6 +71,11 @@ Public Class RestrictedTypeUsageDemo
         Throw New NotSupportedException
     End Operator
 
+    Private Class Something2
+        Sub New(arg As Span(Of Integer))
+        End Sub
+    End Class
+
     Sub CorrectUsages()
         Dim arr As Integer() = {1, 2, 3, 4, 5}
         Dim span As Span(Of Integer) = arr.AsSpan()
@@ -79,6 +84,7 @@ Public Class RestrictedTypeUsageDemo
         Dim localSpan As Span(Of Integer) = span
         Dim sliced = span.Slice(0, 2)
 
+        Dim y2 = New Something2(span)
         ' 正确使用 - 参数传递
         ProcessSpan(span)
     End Sub

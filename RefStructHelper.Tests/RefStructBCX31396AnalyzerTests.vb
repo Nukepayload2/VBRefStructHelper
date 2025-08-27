@@ -463,4 +463,26 @@ End Class
         AssertThatShouldNotHaveError(source, source)
     End Sub
 
+    <TestMethod>
+    Public Sub TestRegularMembersRegression1()
+        Dim source As String = "
+Imports System
+Imports System.Runtime.InteropServices
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+
+    Private Class Something2
+        Sub New(arg As Span(Of Integer))
+        End Sub
+    End Class
+
+    Sub CorrectUsages()
+        Dim y2 = New Something2(span)
+    End Sub
+End Class
+"
+        AssertThatShouldNotHaveError(source, source)
+    End Sub
+
 End Class

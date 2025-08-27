@@ -34,6 +34,10 @@ Public Class RestrictedTypeAsyncOrIteratorDemo
         Yield span.Length
     End Function
 
+    Iterator Function TestMethod6(oops As Span(Of Integer)) As IEnumerable(Of Integer)
+
+    End Function
+
     Iterator Function CorrectUsages() As IEnumerable
         ' 正常的Async/Iterator方法
         Yield 42
