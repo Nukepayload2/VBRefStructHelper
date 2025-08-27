@@ -35,34 +35,12 @@
 - [x] 实现诊断规则 BCX36640 (防止 Lambda 闭包捕获受限类型)
 - [x] 实现诊断规则 BCX37052 (编译为 Async/Iterator 状态机的函数，不允许受限类型变量)
 - [x] 实现诊断规则 BCX31393 (防止调用受限类型继承的实例方法装箱受限类型)
-- [ ] 完善 OptionRestrict 选项检查逻辑 (从 MSBuild 编译属性中读取)
 - [ ] 添加单元测试项目和测试用例
 - [ ] 完善诊断消息的本地化支持
 - [ ] 优化性能和内存使用
-- [ ] 支持 NuGet 打包 (注意 private assets, 并且自带 Nukepayload2.CompilerServices.ExtendRestrictedTypesAttribute)
+- [ ] 支持 NuGet 打包 (注意 private assets)
 
 ## 知识
-### OptionRestrict 的设计
-默认是完全关闭。
-
-完全启用：
-```xml
-<Project>
-  <PropertyGroup>
-    <OptionRestrict>On</OptionRestrict>
-  </PropertyGroup>
-</Project>
-```
-
-按类型选择加入：
-需要先在任意一个地方定义 attribute，然后再使用。被标注了的类型会被这个项目的分析器分析。
-```vb
-Namespace Global.Nukepayload2.CompilerServices
-  <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Delegate, AllowMultiple:=False, Inherited:=False)>
-  Friend Class ExtendRestrictedTypeRulesAttribute
-  End Class
-End Namespace
-```
 
 ## 什么是受限类型
 受限类型只能在栈分配（无法装箱），而且也无法嵌套 ByRef。因此具有如下限制：

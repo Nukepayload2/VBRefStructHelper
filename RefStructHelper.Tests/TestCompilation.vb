@@ -43,17 +43,13 @@ Module TestCompilation
         Dim analyzer6 As New RefStructBCX37052Analyzer
         Dim analyzer7 As New RefStructBCX31393Analyzer
         Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)({analyzer1, analyzer2, analyzer3, analyzer4, analyzer5, analyzer6, analyzer7})
-        
+
         ' 创建模拟的 AnalyzerConfigOptions 来启用 OptionRestrict
         Dim globalOptions = New Dictionary(Of String, String) From {
             {"build_property.OptionRestrict", "On"}
         }
-        Dim mockGlobalOptions = New MockAnalyzerConfigOptions(globalOptions)
-        Dim mockOptionsProvider = New MockAnalyzerConfigOptionsProvider(mockGlobalOptions)
-        
-        ' 创建 AnalyzerOptions 并设置 OptionsProvider
-        Dim analyzerOptions = New AnalyzerOptions(ImmutableArray(Of AdditionalText).Empty, mockOptionsProvider)
-        
+        Dim analyzerOptions = New AnalyzerOptions(ImmutableArray(Of AdditionalText).Empty)
+
         Dim compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, analyzerOptions)
         Dim diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result
 

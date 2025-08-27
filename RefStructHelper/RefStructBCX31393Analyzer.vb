@@ -34,14 +34,9 @@ Public Class RefStructBCX31393Analyzer
     End Sub
 
     Private Sub CompilationStartAction(context As CompilationStartAnalysisContext)
-        ' Check if OptionRestrict is enabled
-        If Not OptionRestrictChecker.IsOptionRestrictEnabled(context) Then
-            Return
-        End If
-
         ' Create a cache for restricted type checks to improve performance
         Dim restrictedTypeCache As New ConcurrentDictionary(Of ITypeSymbol, Boolean)(SymbolEqualityComparer.Default)
-        
+
         ' Get references to Object and ValueType for comparison
         Dim objectType = context.Compilation.GetSpecialType(SpecialType.System_Object)
         Dim valueType = context.Compilation.GetSpecialType(SpecialType.System_ValueType)

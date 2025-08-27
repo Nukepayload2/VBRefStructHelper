@@ -34,11 +34,6 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
     End Sub
 
     Private Sub CompilationStartAction(context As CompilationStartAnalysisContext)
-        ' Check if OptionRestrict is enabled
-        If Not IsOptionRestrictEnabled(context) Then
-            Return
-        End If
-
         ' Create a cache for restricted type checks to improve performance
         Dim restrictedTypeCache As New ConcurrentDictionary(Of ITypeSymbol, Boolean)(SymbolEqualityComparer.Default)
 
