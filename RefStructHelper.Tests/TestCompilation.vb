@@ -35,10 +35,26 @@ Module TestCompilation
         )
 
         ' 运行我们的分析器
-        Dim analyzer1 As DiagnosticAnalyzer = New RefStructConvertToBoxedTypeAnalyzer()
-        Dim analyzer2 As DiagnosticAnalyzer = New RefStructBCX31396Analyzer()
-        Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)({analyzer1, analyzer2})
-        Dim compilationWithAnalyzers = compilation.WithAnalyzers(analyzers)
+        Dim analyzer1 As New RefStructConvertToBoxedTypeAnalyzer
+        Dim analyzer2 As New RefStructBCX31396Analyzer
+        Dim analyzer3 As New RefStructBCX32061Analyzer
+        Dim analyzer4 As New RefStructBCX36598Analyzer
+        Dim analyzer5 As New RefStructBCX36640Analyzer
+        Dim analyzer6 As New RefStructBCX37052Analyzer
+        Dim analyzer7 As New RefStructBCX31393Analyzer
+        Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)({analyzer1, analyzer2, analyzer3, analyzer4, analyzer5, analyzer6, analyzer7})
+        
+        ' 创建模拟的 AnalyzerConfigOptions 来启用 OptionRestrict
+        Dim globalOptions = New Dictionary(Of String, String) From {
+            {"build_property.OptionRestrict", "On"}
+        }
+        Dim mockGlobalOptions = New MockAnalyzerConfigOptions(globalOptions)
+        Dim mockOptionsProvider = New MockAnalyzerConfigOptionsProvider(mockGlobalOptions)
+        
+        ' 创建 AnalyzerOptions 并设置 OptionsProvider
+        Dim analyzerOptions = New AnalyzerOptions(ImmutableArray(Of AdditionalText).Empty, mockOptionsProvider)
+        
+        Dim compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, analyzerOptions)
         Dim diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result
 
         ' 获取语法树文本用于调试

@@ -35,8 +35,7 @@ Public Class RefStructBCX31396Analyzer
 
     Private Sub CompilationStartAction(context As CompilationStartAnalysisContext)
         ' Check if OptionRestrict is enabled
-        Dim compilation = context.Compilation
-        If Not IsOptionRestrictEnabled(compilation) Then
+        If Not OptionRestrictChecker.IsOptionRestrictEnabled(context) Then
             Return
         End If
 
@@ -76,11 +75,6 @@ Public Class RefStructBCX31396Analyzer
         End If
     End Sub
 
-    Private Function IsOptionRestrictEnabled(compilation As Compilation) As Boolean
-        ' Check if <OptionRestrict>On</OptionRestrict> is set in the project
-        ' For now, assume it's enabled for testing
-        Return True
-    End Function
 
     Private Sub AnalyzeNullableType(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
         Dim nullableTypeNode = DirectCast(context.Node, NullableTypeSyntax)
@@ -322,24 +316,20 @@ Public Class RefStructBCX31396Analyzer
             For Each name In declarator.Names
                 ' Check if the nullable token is a question mark
                 If name.Nullable <> Nothing Then
-                    ' Get the inferred type from the initializer
-                    If declarator.Initializer IsNot Nothing Then
-                        ' Check for Dim nullableSpan? = span
+                    ' For Dim nullableSpan? As Span(Of Integer) [= Something]
+                    ' 当变量名有问号修饰时，需要检查 AsClause 的类型是否为受限类型
+                    If declarator.AsClause IsNot Nothing Then
+                        Dim asType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
+                        If asType IsNot Nothing AndAlso IsRestrictedType(asType, restrictedTypeCache) Then
+                            Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), asType.Name)
+                            context.ReportDiagnostic(diagnostic)
+                        End If
+                    ElseIf declarator.Initializer IsNot Nothing Then
+                        ' Check for Dim nullableSpan? = span (type inference from initializer)
                         Dim initializerType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
                         If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType, restrictedTypeCache) Then
                             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, name.GetLocation(), initializerType.Name)
                             context.ReportDiagnostic(diagnostic)
-                        End If
-                    Else
-                        ' Check for Dim nullableSpan? As Span(Of Integer)
-                        ' 这种情况下 name.Nullable <> Nothing 但没有初始化器
-                        ' 需要检查 AsClause 的类型是否为受限类型
-                        If declarator.AsClause IsNot Nothing Then
-                            Dim asType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
-                            If asType IsNot Nothing AndAlso IsRestrictedType(asType, restrictedTypeCache) Then
-                                Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), asType.Name)
-                                context.ReportDiagnostic(diagnostic)
-                            End If
                         End If
                     End If
                 End If

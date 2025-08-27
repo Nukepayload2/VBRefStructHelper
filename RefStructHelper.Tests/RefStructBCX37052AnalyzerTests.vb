@@ -1,6 +1,6 @@
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
-<TestClass, Ignore("没做")>
+<TestClass>
 Public Class RefStructBCX37052AnalyzerTests
 
     Private Shared Sub AssertThatShouldHaveError(snippetContent As String, source As String)

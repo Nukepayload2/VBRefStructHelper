@@ -30,21 +30,39 @@
     - [x] 匿名类型的成员不能是受限类型
     - [x] ByRef 参数类型不能是受限类型
     - [x] 返回值不能是受限类型
-
-### 待完成任务
-- [ ] 实现诊断规则 BCX32061 (是否允许受限类型作为泛型参数)
-- [ ] 实现诊断规则 BCX36598 (防止 LINQ 范围变量声明或者闭包捕获受限类型)
-- [ ] 实现诊断规则 BCX36640 (防止 Lambda 闭包捕获受限类型)
-- [ ] 实现诊断规则 BCX37052 (编译为 Async/Iterator 状态机的函数，不允许受限类型变量)
-- [ ] 实现诊断规则 BCX31393 (防止调用受限类型继承的实例方法装箱受限类型)
+- [x] 实现诊断规则 BCX32061 (是否允许受限类型作为泛型参数)
+- [x] 实现诊断规则 BCX36598 (防止 LINQ 范围变量声明或者闭包捕获受限类型)
+- [x] 实现诊断规则 BCX36640 (防止 Lambda 闭包捕获受限类型)
+- [x] 实现诊断规则 BCX37052 (编译为 Async/Iterator 状态机的函数，不允许受限类型变量)
+- [x] 实现诊断规则 BCX31393 (防止调用受限类型继承的实例方法装箱受限类型)
 - [ ] 完善 OptionRestrict 选项检查逻辑 (从 MSBuild 编译属性中读取)
 - [ ] 添加单元测试项目和测试用例
 - [ ] 完善诊断消息的本地化支持
 - [ ] 优化性能和内存使用
-- [ ] 添加更多边界情况的处理
-- [ ] 移动到独立的 GitHub 仓库
+- [ ] 支持 NuGet 打包 (注意 private assets, 并且自带 Nukepayload2.CompilerServices.ExtendRestrictedTypesAttribute)
 
 ## 知识
+### OptionRestrict 的设计
+默认是完全关闭。
+
+完全启用：
+```xml
+<Project>
+  <PropertyGroup>
+    <OptionRestrict>On</OptionRestrict>
+  </PropertyGroup>
+</Project>
+```
+
+按类型选择加入：
+需要先在任意一个地方定义 attribute，然后再使用。被标注了的类型会被这个项目的分析器分析。
+```vb
+Namespace Global.Nukepayload2.CompilerServices
+  <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Delegate, AllowMultiple:=False, Inherited:=False)>
+  Friend Class ExtendRestrictedTypeRulesAttribute
+  End Class
+End Namespace
+```
 
 ## 什么是受限类型
 受限类型只能在栈分配（无法装箱），而且也无法嵌套 ByRef。因此具有如下限制：

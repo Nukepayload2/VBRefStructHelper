@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-' 一些工具在 SymbolHelper
+' 涓�浜涘伐鍏峰湪 SymbolHelper
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class RefStructConvertToBoxedTypeAnalyzer
     Inherits DiagnosticAnalyzer
@@ -35,8 +35,7 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
 
     Private Sub CompilationStartAction(context As CompilationStartAnalysisContext)
         ' Check if OptionRestrict is enabled
-        Dim compilation = context.Compilation
-        If Not IsOptionRestrictEnabled(compilation) Then
+        If Not IsOptionRestrictEnabled(context) Then
             Return
         End If
 
@@ -124,16 +123,6 @@ Public Class RefStructConvertToBoxedTypeAnalyzer
         Next
     End Sub
 
-    Private Function IsOptionRestrictEnabled(compilation As Compilation) As Boolean
-        ' Check if <OptionRestrict>On</OptionRestrict> is set in the project
-        ' Look for the specific compilation option
-        Dim visualBasicCompilation = TryCast(compilation, VisualBasicCompilation)
-        If visualBasicCompilation IsNot Nothing Then
-            ' This would require accessing the compilation options
-            Return True
-        End If
-        Return True ' For now, assume it's enabled for testing
-    End Function
 
     Private Sub AnalyzeCastExpression(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
         Dim semanticModel = context.SemanticModel
