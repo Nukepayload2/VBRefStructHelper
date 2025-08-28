@@ -1,6 +1,7 @@
 ﻿Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 <Obsolete("Suppress default ref struct obsolete errors")>
@@ -54,8 +55,20 @@ Module TestCompilation
         If syntaxTreeSource Is Nothing Then
             syntaxTreeText = SyntaxTreeVisualizer.ToVisualString(syntaxTree.GetRoot())
         Else
-            syntaxTree = VisualBasicSyntaxTree.ParseText(syntaxTreeSource, parseOptions)
-            syntaxTreeText = SyntaxTreeVisualizer.ToVisualString(syntaxTree.GetRoot())
+            ' 使用 IndexOf 找到位置（取第一个匹配）
+            Dim position As Integer = source.IndexOf(syntaxTreeSource)
+            If position >= 0 Then
+                ' 创建文本跨度
+                Dim span As New TextSpan(position, syntaxTreeSource.Length)
+                ' 在原始语法树中找到对应的节点
+                Dim node As SyntaxNode = syntaxTree.GetRoot().FindNode(span)
+                ' 可视化显示找到的节点
+                syntaxTreeText = SyntaxTreeVisualizer.ToVisualString(node)
+            Else
+                ' 如果找不到，回退到原来的重新解析方式
+                syntaxTree = VisualBasicSyntaxTree.ParseText(syntaxTreeSource, parseOptions)
+                syntaxTreeText = SyntaxTreeVisualizer.ToVisualString(syntaxTree.GetRoot())
+            End If
         End If
 
         Return (syntaxTreeText, diagnostics)
