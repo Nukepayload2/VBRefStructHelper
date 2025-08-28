@@ -267,6 +267,23 @@ Public Class RefStructBCX31396Analyzer
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
+        ' Check if this is a Static declaration - Static declarations are actually fields with thread synchronization
+        If localDeclNode.Modifiers.Any(Function(m) m.IsKind(SyntaxKind.StaticKeyword)) Then
+            ' Handle Static declarations as field declarations
+            For Each declarator In localDeclNode.Declarators
+                If declarator.AsClause IsNot Nothing Then
+                    Dim fieldType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
+                    If fieldType IsNot Nothing AndAlso IsRestrictedType(fieldType, restrictedTypeCache) Then
+                        ' Static declarations in methods are compiled as fields in the class
+                        ' Report diagnostic for restricted types in Static declarations
+                        Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), fieldType.Name)
+                        context.ReportDiagnostic(diagnostic)
+                    End If
+                End If
+            Next
+            Return ' Exit early for Static declarations
+        End If
+
         ' 注意：Dim nullableSpan? As Span(Of Integer) 和 Dim nullableSpan As Span(Of Integer)? 是两码事！
         ' Dim nullableSpan? As Span(Of Integer) 的 As 语句的类型是 Span(Of Integer)
         ' Dim nullableSpan As Span(Of Integer)? 的 As 语句的类型是 Span(Of Integer)?
