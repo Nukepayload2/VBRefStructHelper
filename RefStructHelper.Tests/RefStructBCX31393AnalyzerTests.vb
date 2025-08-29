@@ -111,15 +111,20 @@ End Class
 
     <TestMethod>
     Public Sub TestNormalObjectUsage()
+        Dim snippet = "Dim obj As Object = ""hello""
+Dim str As String = obj.ToString()
+Dim hash As Integer = obj.GetHashCode()
+Dim type As Type = obj.GetType()"
+        AssertThatCorrectInMethod(snippet)
+    End Sub
+
+    Private Shared Sub AssertThatCorrectInMethod(snippet As String)
         Dim source As FormattableString = $"
 Imports System
 
 Class TestClass
     Sub TestMethod()
-        Dim obj As Object = ""hello""
-        Dim str As String = obj.ToString()
-        Dim hash As Integer = obj.GetHashCode()
-        Dim type As Type = obj.GetType()
+{snippet}
     End Sub
 End Class
 "

@@ -412,14 +412,19 @@ End Structure
 
     <TestMethod>
     Public Sub TestNormalGenericUsage()
+        Dim snippet = "Dim list As New List(Of Integer)
+Dim dict As New Dictionary(Of String, Integer)"
+        AssertThatCorrectInMethod(snippet)
+    End Sub
+
+    Private Shared Sub AssertThatCorrectInMethod(snippet As String)
         Dim source As FormattableString = $"
 Imports System
 Imports System.Collections.Generic
 
 Class TestClass
     Sub TestMethod()
-        Dim list As New List(Of Integer)
-        Dim dict As New Dictionary(Of String, Integer)
+{snippet}
     End Sub
 End Class
 "

@@ -205,14 +205,19 @@ End Class
 
     <TestMethod>
     Public Sub TestNormalAsyncMethod()
+        Dim snippet = "Dim x As Integer = 42
+Await Task.Delay(100)"
+        AssertThatCorrectInAsyncMethod(snippet)
+    End Sub
+
+    Private Shared Sub AssertThatCorrectInAsyncMethod(snippet As String)
         Dim source As FormattableString = $"
 Imports System
 Imports System.Threading.Tasks
 
 Class TestClass
     Async Function TestMethod() As Task
-        Dim x As Integer = 42
-        Await Task.Delay(100)
+{snippet}
     End Function
 End Class
 "

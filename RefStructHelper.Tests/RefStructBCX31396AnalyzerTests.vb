@@ -453,6 +453,14 @@ End Class
 
     <TestMethod>
     Public Sub TestRegularMembers()
+        Dim snippet = "Dim arr As Integer() = {1, 2, 3, 4, 5}
+Dim span As Span(Of Integer) = arr.AsSpan()
+arr(0) = span.Length
+Dim sliced = span.Slice(0,2)"
+        AssertThatCorrectInMethod(snippet)
+    End Sub
+
+    Private Shared Sub AssertThatCorrectInMethod(snippet As String)
         Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
@@ -460,10 +468,7 @@ Imports System.Runtime.InteropServices
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim span As Span(Of Integer) = arr.AsSpan()
-        arr(0) = span.Length
-        Dim sliced = span.Slice(0,2)
+{snippet}
     End Sub
 End Class
 "

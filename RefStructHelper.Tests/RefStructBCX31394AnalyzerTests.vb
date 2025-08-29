@@ -254,14 +254,19 @@ End Class
     ' 没有使用 Span 的正常代码不应该触发
     <TestMethod>
     Public Sub TestNormalCode()
+        Dim snippet = "Dim obj As Object = ""hello""
+Dim arr As Object() = {""hello"", 42}
+Dim valueType As ValueType = 123"
+        AssertThatCorrectInMethod(snippet)
+    End Sub
+
+    Private Shared Sub AssertThatCorrectInMethod(snippet As String)
         Dim source As FormattableString = $"
 Imports System
 
 Class TestClass
     Sub TestMethod()
-        Dim obj As Object = ""hello""
-        Dim arr As Object() = {{""hello"", 42}}
-        Dim valueType As ValueType = 123
+{snippet}
     End Sub
 End Class
 "

@@ -101,15 +101,20 @@ End Class
 
     <TestMethod>
     Public Sub TestNormalLinqUsage()
+        Dim snippet = "Dim arr As Integer() = {1, 2, 3, 4, 5}
+Dim query = From item In arr Where item > 0 Select item
+Dim result = query.ToList()"
+        AssertThatCorrectInMethod(snippet)
+    End Sub
+
+    Private Shared Sub AssertThatCorrectInMethod(snippet As String)
         Dim source As FormattableString = $"
 Imports System
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim query = From item In arr Where item > 0 Select item
-        Dim result = query.ToList()
+{snippet}
     End Sub
 End Class
 "

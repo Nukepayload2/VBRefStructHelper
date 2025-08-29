@@ -264,16 +264,21 @@ End Class
 
     <TestMethod>
     Public Sub TestNormalLambdaUsage()
+        Dim snippet = "Dim arr As Integer() = {1, 2, 3, 4, 5}
+Dim action As Action = Sub() Console.WriteLine(""Hello"")
+Dim func As Func(Of Integer, Integer) = Function(x) x * 2
+Dim result = arr.Select(Function(x) x * 2).ToArray()"
+        AssertThatCorrectInMethod(snippet)
+    End Sub
+
+    Private Shared Sub AssertThatCorrectInMethod(snippet As String)
         Dim source As FormattableString = $"
 Imports System
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim action As Action = Sub() Console.WriteLine(""Hello"")
-        Dim func As Func(Of Integer, Integer) = Function(x) x * 2
-        Dim result = arr.Select(Function(x) x * 2).ToArray()
+{snippet}
     End Sub
 End Class
 "
