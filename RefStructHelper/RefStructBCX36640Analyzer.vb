@@ -38,14 +38,14 @@ Public Class RefStructBCX36640Analyzer
         Dim restrictedTypeCache As New ConcurrentDictionary(Of ITypeSymbol, Boolean)(SymbolEqualityComparer.Default)
 
         ' Register for Lambda expressions
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeLambdaExpression(ctx, restrictedTypeCache), SyntaxKind.SingleLineFunctionLambdaExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeLambdaExpression(ctx, restrictedTypeCache), SyntaxKind.SingleLineSubLambdaExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeLambdaExpression(ctx, restrictedTypeCache), SyntaxKind.MultiLineFunctionLambdaExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeLambdaExpression(ctx, restrictedTypeCache), SyntaxKind.MultiLineSubLambdaExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeLambdaExpression, SyntaxKind.SingleLineFunctionLambdaExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeLambdaExpression, SyntaxKind.SingleLineSubLambdaExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeLambdaExpression, SyntaxKind.MultiLineSubLambdaExpression)
     End Sub
 
 
-    Private Sub AnalyzeLambdaExpression(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeLambdaExpression(context As SyntaxNodeAnalysisContext)
         Dim lambdaNode = DirectCast(context.Node, LambdaExpressionSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -55,71 +55,71 @@ Public Class RefStructBCX36640Analyzer
             Select Case node.Kind()
                 Case SyntaxKind.IdentifierName
                     Dim identifier = DirectCast(node, IdentifierNameSyntax)
-                    CheckIdentifierForClosureCapture(identifier, lambdaNode, context, restrictedTypeCache, semanticModel, cancellationToken)
-                
+                    CheckIdentifierForClosureCapture(identifier, lambdaNode, context, semanticModel, cancellationToken)
+
                 Case SyntaxKind.SimpleMemberAccessExpression
                     Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
-                    CheckMemberAccessForClosureCapture(memberAccess, lambdaNode, context, restrictedTypeCache, semanticModel, cancellationToken)
+                    CheckMemberAccessForClosureCapture(memberAccess, lambdaNode, context, semanticModel, cancellationToken)
             End Select
         Next
     End Sub
 
     Private Sub CheckIdentifierForClosureCapture(identifier As IdentifierNameSyntax, lambdaNode As LambdaExpressionSyntax,
-                                               context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
+                                               context As SyntaxNodeAnalysisContext,
                                                semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
+
         Dim symbolInfo = semanticModel.GetSymbolInfo(identifier, cancellationToken)
         If symbolInfo.Symbol IsNot Nothing Then
             Dim symbolType As ITypeSymbol = Nothing
             Dim isClosureCapture As Boolean = False
-            
+
             ' Check if this is a closure capture (variable from outside the lambda)
             Select Case symbolInfo.Symbol.Kind
                 Case SymbolKind.Field
                     symbolType = DirectCast(symbolInfo.Symbol, IFieldSymbol).Type
                     ' Field access could be closure capture if the field is from outer scope
                     isClosureCapture = IsFromOuterScope(symbolInfo.Symbol, lambdaNode, semanticModel)
-                
+
                 Case SymbolKind.Local
                     Dim localSymbol = DirectCast(symbolInfo.Symbol, ILocalSymbol)
                     symbolType = localSymbol.Type
                     ' Check if local variable is defined outside the lambda (closure capture)
                     isClosureCapture = IsFromOuterScope(localSymbol, lambdaNode, semanticModel)
-                
+
                 Case SymbolKind.Parameter
                     Dim parameterSymbol = DirectCast(symbolInfo.Symbol, IParameterSymbol)
                     symbolType = parameterSymbol.Type
                     ' Check if parameter is from outer method (not lambda parameter)
                     isClosureCapture = IsFromOuterScope(parameterSymbol, lambdaNode, semanticModel)
-                
+
                 Case SymbolKind.Property
                     symbolType = DirectCast(symbolInfo.Symbol, IPropertySymbol).Type
                     ' Property access could be closure capture if accessing outer instance
                     isClosureCapture = IsFromOuterScope(symbolInfo.Symbol, lambdaNode, semanticModel)
             End Select
-            
-            If isClosureCapture AndAlso symbolType IsNot Nothing AndAlso IsRestrictedType(symbolType, restrictedTypeCache) Then
+
+            If isClosureCapture AndAlso symbolType IsNot Nothing AndAlso IsRestrictedType(symbolType) Then
                 ReportDiagnostic(context, identifier, symbolType)
             End If
         End If
     End Sub
 
     Private Sub CheckMemberAccessForClosureCapture(memberAccess As MemberAccessExpressionSyntax, lambdaNode As LambdaExpressionSyntax,
-                                                  context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
+                                                  context As SyntaxNodeAnalysisContext,
                                                   semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
+
         ' Check the expression part of member access (e.g., 'span' in 'span.Length')
         Dim expressionType = semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type
-        If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType, restrictedTypeCache) Then
+        If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType) Then
             ' Check if the expression refers to a closure capture
             If IsClosureCaptureExpression(memberAccess.Expression, lambdaNode, semanticModel, cancellationToken) Then
                 ReportDiagnostic(context, memberAccess.Expression, expressionType)
             End If
         End If
-        
+
         ' Also check if the member access itself returns a restricted type that's being captured
         Dim memberAccessType = semanticModel.GetTypeInfo(memberAccess, cancellationToken).Type
-        If memberAccessType IsNot Nothing AndAlso IsRestrictedType(memberAccessType, restrictedTypeCache) Then
+        If memberAccessType IsNot Nothing AndAlso IsRestrictedType(memberAccessType) Then
             ' If the member access returns a restricted type and the base expression is a closure capture
             If IsClosureCaptureExpression(memberAccess.Expression, lambdaNode, semanticModel, cancellationToken) Then
                 ReportDiagnostic(context, memberAccess, memberAccessType)
@@ -128,12 +128,12 @@ Public Class RefStructBCX36640Analyzer
     End Sub
 
     Private Sub CheckInvocationForClosureCapture(invocation As InvocationExpressionSyntax, lambdaNode As LambdaExpressionSyntax,
-                                               context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
+                                               context As SyntaxNodeAnalysisContext,
                                                semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
+
         ' Check if the invocation returns a restricted type and involves closure capture
         Dim invocationType = semanticModel.GetTypeInfo(invocation, cancellationToken).Type
-        If invocationType IsNot Nothing AndAlso IsRestrictedType(invocationType, restrictedTypeCache) Then
+        If invocationType IsNot Nothing AndAlso IsRestrictedType(invocationType) Then
             ' Check if the invocation target involves closure capture
             If TypeOf invocation.Expression Is MemberAccessExpressionSyntax Then
                 Dim memberAccess = DirectCast(invocation.Expression, MemberAccessExpressionSyntax)
@@ -147,14 +147,14 @@ Public Class RefStructBCX36640Analyzer
                 End If
             End If
         End If
-        
+
         ' Check arguments for closure captures of restricted types
         If invocation.ArgumentList IsNot Nothing Then
             For Each argument In invocation.ArgumentList.Arguments
                 If TypeOf argument Is SimpleArgumentSyntax Then
                     Dim simpleArg = DirectCast(argument, SimpleArgumentSyntax)
                     Dim argType = semanticModel.GetTypeInfo(simpleArg.Expression, cancellationToken).Type
-                    If argType IsNot Nothing AndAlso IsRestrictedType(argType, restrictedTypeCache) Then
+                    If argType IsNot Nothing AndAlso IsRestrictedType(argType) Then
                         If IsClosureCaptureExpression(simpleArg.Expression, lambdaNode, semanticModel, cancellationToken) Then
                             ReportDiagnostic(context, simpleArg.Expression, argType)
                         End If

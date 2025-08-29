@@ -34,29 +34,25 @@ Public Class RefStructBCX31393Analyzer
     End Sub
 
     Private Sub CompilationStartAction(context As CompilationStartAnalysisContext)
-        ' Create a cache for restricted type checks to improve performance
-        Dim restrictedTypeCache As New ConcurrentDictionary(Of ITypeSymbol, Boolean)(SymbolEqualityComparer.Default)
-
         ' Get references to Object and ValueType for comparison
         Dim objectType = context.Compilation.GetSpecialType(SpecialType.System_Object)
         Dim valueType = context.Compilation.GetSpecialType(SpecialType.System_ValueType)
 
         ' Register for member access expressions and invocations
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeMemberAccess(ctx, restrictedTypeCache, objectType, valueType), SyntaxKind.SimpleMemberAccessExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeInvocation(ctx, restrictedTypeCache, objectType, valueType), SyntaxKind.InvocationExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeInterpolation(ctx, restrictedTypeCache), SyntaxKind.InterpolatedStringExpression)
+        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeMemberAccess(ctx, objectType, valueType), SyntaxKind.SimpleMemberAccessExpression)
+        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeInvocation(ctx, objectType, valueType), SyntaxKind.InvocationExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeInterpolation, SyntaxKind.InterpolatedStringExpression)
     End Sub
 
 
-    Private Sub AnalyzeMemberAccess(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                   objectType As ITypeSymbol, valueType As ITypeSymbol)
+    Private Sub AnalyzeMemberAccess(context As SyntaxNodeAnalysisContext, objectType As ITypeSymbol, valueType As ITypeSymbol)
         Dim memberAccess = DirectCast(context.Node, MemberAccessExpressionSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
         ' Check if the expression is a restricted type
         Dim expressionType = semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type
-        If expressionType Is Nothing OrElse Not IsRestrictedType(expressionType, restrictedTypeCache) Then
+        If expressionType Is Nothing OrElse Not IsRestrictedType(expressionType) Then
             Return
         End If
 
@@ -69,8 +65,7 @@ Public Class RefStructBCX31393Analyzer
         End If
     End Sub
 
-    Private Sub AnalyzeInvocation(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                 objectType As ITypeSymbol, valueType As ITypeSymbol)
+    Private Sub AnalyzeInvocation(context As SyntaxNodeAnalysisContext, objectType As ITypeSymbol, valueType As ITypeSymbol)
         Dim invocation = DirectCast(context.Node, InvocationExpressionSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -97,7 +92,7 @@ Public Class RefStructBCX31393Analyzer
                             If TypeOf argument Is SimpleArgumentSyntax Then
                                 Dim simpleArg = DirectCast(argument, SimpleArgumentSyntax)
                                 Dim argType = semanticModel.GetTypeInfo(simpleArg.Expression, cancellationToken).Type
-                                If argType IsNot Nothing AndAlso IsRestrictedType(argType, restrictedTypeCache) Then
+                                If argType IsNot Nothing AndAlso IsRestrictedType(argType) Then
                                     ReportDiagnostic(context, simpleArg.Expression, argType)
                                 End If
                             End If
@@ -111,8 +106,8 @@ Public Class RefStructBCX31393Analyzer
         If TypeOf invocation.Expression Is MemberAccessExpressionSyntax Then
             Dim memberAccess = DirectCast(invocation.Expression, MemberAccessExpressionSyntax)
             Dim expressionType = semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type
-            
-            If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType, restrictedTypeCache) Then
+
+            If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType) Then
                 If symbolInfo.Symbol IsNot Nothing AndAlso IsInheritedFromObjectOrValueType(symbolInfo.Symbol, objectType, valueType) Then
                     ReportDiagnostic(context, memberAccess.Expression, expressionType)
                 End If
@@ -120,7 +115,7 @@ Public Class RefStructBCX31393Analyzer
         End If
     End Sub
 
-    Private Sub AnalyzeInterpolation(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeInterpolation(context As SyntaxNodeAnalysisContext)
         Dim interpolation = DirectCast(context.Node, InterpolatedStringExpressionSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -130,8 +125,8 @@ Public Class RefStructBCX31393Analyzer
             If TypeOf content Is InterpolationSyntax Then
                 Dim interp = DirectCast(content, InterpolationSyntax)
                 Dim expressionType = semanticModel.GetTypeInfo(interp.Expression, cancellationToken).Type
-                
-                If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType, restrictedTypeCache) Then
+
+                If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType) Then
                     ' String interpolation calls ToString() which would cause boxing
                     ReportDiagnostic(context, interp.Expression, expressionType)
                 End If
@@ -157,9 +152,9 @@ Public Class RefStructBCX31393Analyzer
         If TypeOf symbol Is IPropertySymbol Then
             Dim propertySymbol = DirectCast(symbol, IPropertySymbol)
             Dim containingType = propertySymbol.ContainingType
-            
+
             ' Check if the property is defined in Object or ValueType
-            If SymbolEqualityComparer.Default.Equals(containingType, objectType) OrElse 
+            If SymbolEqualityComparer.Default.Equals(containingType, objectType) OrElse
                SymbolEqualityComparer.Default.Equals(containingType, valueType) Then
                 Return True
             End If

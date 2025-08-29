@@ -38,41 +38,39 @@ Public Class RefStructBCX36598Analyzer
         Dim restrictedTypeCache As New ConcurrentDictionary(Of ITypeSymbol, Boolean)(SymbolEqualityComparer.Default)
 
         ' Register for LINQ query expressions
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeQueryExpression(ctx, restrictedTypeCache), SyntaxKind.QueryExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeQueryExpression, SyntaxKind.QueryExpression)
     End Sub
 
     Private Sub CheckExpressionForRestrictedTypes(expression As ExpressionSyntax, context As SyntaxNodeAnalysisContext,
-                                                 restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                                 semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
+                                                                                                  semanticModel As SemanticModel, cancellationToken As CancellationToken)
+
         ' Only check the current expression, not its descendants
         Select Case expression.Kind()
             Case SyntaxKind.IdentifierName
-                CheckIdentifierForRestrictedType(DirectCast(expression, IdentifierNameSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-            
+                CheckIdentifierForRestrictedType(DirectCast(expression, IdentifierNameSyntax), context, semanticModel, cancellationToken)
+
             Case SyntaxKind.SimpleMemberAccessExpression
-                CheckMemberAccessForRestrictedType(DirectCast(expression, MemberAccessExpressionSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-            
+                CheckMemberAccessForRestrictedType(DirectCast(expression, MemberAccessExpressionSyntax), context, semanticModel, cancellationToken)
+
             Case SyntaxKind.InvocationExpression
-                CheckInvocationForRestrictedType(DirectCast(expression, InvocationExpressionSyntax), context, restrictedTypeCache, semanticModel, cancellationToken)
-            
+                CheckInvocationForRestrictedType(DirectCast(expression, InvocationExpressionSyntax), context, semanticModel, cancellationToken)
+
             Case Else
                 ' For other expression types, check if the expression itself returns a restricted type
                 Dim exprType = semanticModel.GetTypeInfo(expression, cancellationToken).Type
-                If exprType IsNot Nothing AndAlso IsRestrictedType(exprType, restrictedTypeCache) Then
+                If exprType IsNot Nothing AndAlso IsRestrictedType(exprType) Then
                     ReportDiagnostic(context, expression, exprType)
                 End If
         End Select
     End Sub
 
     Private Sub CheckIdentifierForRestrictedType(identifier As IdentifierNameSyntax, context As SyntaxNodeAnalysisContext,
-                                               restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                               semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
+                                                                                              semanticModel As SemanticModel, cancellationToken As CancellationToken)
+
         Dim symbolInfo = semanticModel.GetSymbolInfo(identifier, cancellationToken)
         If symbolInfo.Symbol IsNot Nothing Then
             Dim symbolType As ITypeSymbol = Nothing
-            
+
             ' Get the type of the symbol
             Select Case symbolInfo.Symbol.Kind
                 Case SymbolKind.Field
@@ -84,20 +82,19 @@ Public Class RefStructBCX36598Analyzer
                 Case SymbolKind.Property
                     symbolType = DirectCast(symbolInfo.Symbol, IPropertySymbol).Type
             End Select
-            
-            If symbolType IsNot Nothing AndAlso IsRestrictedType(symbolType, restrictedTypeCache) Then
+
+            If symbolType IsNot Nothing AndAlso IsRestrictedType(symbolType) Then
                 ReportDiagnostic(context, identifier, symbolType)
             End If
         End If
     End Sub
 
     Private Sub CheckMemberAccessForRestrictedType(memberAccess As MemberAccessExpressionSyntax, context As SyntaxNodeAnalysisContext,
-                                                  restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                                  semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
+                                                                                                    semanticModel As SemanticModel, cancellationToken As CancellationToken)
+
         ' Check the expression part of member access (e.g., 'span' in 'span.Length')
         Dim expressionType = semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type
-        If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType, restrictedTypeCache) Then
+        If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType) Then
             ' Additional check: if this is part of a chain that eventually returns a non-restricted type, don't report
             Dim parent = memberAccess.Parent
             If parent IsNot Nothing AndAlso (parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) OrElse parent.IsKind(SyntaxKind.InvocationExpression)) Then
@@ -106,16 +103,16 @@ Public Class RefStructBCX36598Analyzer
             End If
             ' Additional check: if the final result type is not restricted, don't report
             Dim finalType = semanticModel.GetTypeInfo(memberAccess, cancellationToken).Type
-            If finalType IsNot Nothing AndAlso Not IsRestrictedType(finalType, restrictedTypeCache) Then
+            If finalType IsNot Nothing AndAlso Not IsRestrictedType(finalType) Then
                 ' The final result is not restricted, so don't report intermediate restricted types
                 Return
             End If
             ReportDiagnostic(context, memberAccess.Expression, expressionType)
         End If
-        
+
         ' Also check if the member access itself returns a restricted type
         Dim memberAccessType = semanticModel.GetTypeInfo(memberAccess, cancellationToken).Type
-        If memberAccessType IsNot Nothing AndAlso IsRestrictedType(memberAccessType, restrictedTypeCache) Then
+        If memberAccessType IsNot Nothing AndAlso IsRestrictedType(memberAccessType) Then
             ' Additional check: if this is part of a chain that eventually returns a non-restricted type, don't report
             Dim parent = memberAccess.Parent
             If parent IsNot Nothing AndAlso (parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) OrElse parent.IsKind(SyntaxKind.InvocationExpression)) Then
@@ -124,7 +121,7 @@ Public Class RefStructBCX36598Analyzer
             End If
             ' Additional check: if the final result type is not restricted, don't report
             Dim finalType = semanticModel.GetTypeInfo(memberAccess, cancellationToken).Type
-            If finalType IsNot Nothing AndAlso Not IsRestrictedType(finalType, restrictedTypeCache) Then
+            If finalType IsNot Nothing AndAlso Not IsRestrictedType(finalType) Then
                 ' The final result is not restricted, so don't report intermediate restricted types
                 Return
             End If
@@ -133,12 +130,11 @@ Public Class RefStructBCX36598Analyzer
     End Sub
 
     Private Sub CheckInvocationForRestrictedType(invocation As InvocationExpressionSyntax, context As SyntaxNodeAnalysisContext,
-                                               restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                               semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
+                                                                                              semanticModel As SemanticModel, cancellationToken As CancellationToken)
+
         ' Check if the invocation returns a restricted type (e.g., arr.AsSpan())
         Dim invocationType = semanticModel.GetTypeInfo(invocation, cancellationToken).Type
-        If invocationType IsNot Nothing AndAlso IsRestrictedType(invocationType, restrictedTypeCache) Then
+        If invocationType IsNot Nothing AndAlso IsRestrictedType(invocationType) Then
             ' Additional check: if this is part of a chain that eventually returns a non-restricted type, don't report
             Dim parent = invocation.Parent
             If parent IsNot Nothing Then
@@ -155,19 +151,19 @@ Public Class RefStructBCX36598Analyzer
             End If
             ReportDiagnostic(context, invocation, invocationType)
         End If
-        
+
         ' Check arguments for restricted types
         If invocation.ArgumentList IsNot Nothing Then
             For Each argument In invocation.ArgumentList.Arguments
                 If TypeOf argument Is SimpleArgumentSyntax Then
                     Dim simpleArg = DirectCast(argument, SimpleArgumentSyntax)
-                    CheckExpressionForRestrictedTypes(simpleArg.Expression, context, restrictedTypeCache, semanticModel, cancellationToken)
+                    CheckExpressionForRestrictedTypes(simpleArg.Expression, context, semanticModel, cancellationToken)
                 End If
             Next
         End If
     End Sub
 
-    Private Sub AnalyzeQueryExpression(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeQueryExpression(context As SyntaxNodeAnalysisContext)
         Dim queryNode = DirectCast(context.Node, QueryExpressionSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -177,15 +173,15 @@ Public Class RefStructBCX36598Analyzer
             Select Case node.Kind()
                 Case SyntaxKind.IdentifierName
                     Dim identifier = DirectCast(node, IdentifierNameSyntax)
-                    CheckIdentifierForRestrictedType(identifier, context, restrictedTypeCache, semanticModel, cancellationToken)
-                
+                    CheckIdentifierForRestrictedType(identifier, context, semanticModel, cancellationToken)
+
                 Case SyntaxKind.SimpleMemberAccessExpression
                     Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
-                    CheckMemberAccessForRestrictedType(memberAccess, context, restrictedTypeCache, semanticModel, cancellationToken)
-                
+                    CheckMemberAccessForRestrictedType(memberAccess, context, semanticModel, cancellationToken)
+
                 Case SyntaxKind.InvocationExpression
                     Dim invocation = DirectCast(node, InvocationExpressionSyntax)
-                    CheckInvocationForRestrictedType(invocation, context, restrictedTypeCache, semanticModel, cancellationToken)
+                    CheckInvocationForRestrictedType(invocation, context, semanticModel, cancellationToken)
             End Select
         Next
     End Sub

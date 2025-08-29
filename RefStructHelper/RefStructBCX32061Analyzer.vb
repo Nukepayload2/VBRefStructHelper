@@ -34,16 +34,13 @@ Public Class RefStructBCX32061Analyzer
     End Sub
 
     Private Sub CompilationStartAction(context As CompilationStartAnalysisContext)
-        ' Create a cache for restricted type checks to improve performance
-        Dim restrictedTypeCache As New ConcurrentDictionary(Of ITypeSymbol, Boolean)(SymbolEqualityComparer.Default)
-
         ' Register for various syntax node actions to catch different scenarios
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeGenericName(ctx, restrictedTypeCache), SyntaxKind.GenericName)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeTypeConstraint(ctx, restrictedTypeCache), SyntaxKind.TypeConstraint)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeGenericName, SyntaxKind.GenericName)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeTypeConstraint, SyntaxKind.TypeConstraint)
     End Sub
 
 
-    Private Sub AnalyzeGenericName(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeGenericName(context As SyntaxNodeAnalysisContext)
         Dim genericNameNode = DirectCast(context.Node, GenericNameSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -52,7 +49,7 @@ Public Class RefStructBCX32061Analyzer
         If genericNameNode.TypeArgumentList IsNot Nothing Then
             For Each typeArgument In genericNameNode.TypeArgumentList.Arguments
                 Dim typeArgType = semanticModel.GetTypeInfo(typeArgument, cancellationToken).Type
-                If typeArgType IsNot Nothing AndAlso IsRestrictedType(typeArgType, restrictedTypeCache) Then
+                If typeArgType IsNot Nothing AndAlso IsRestrictedType(typeArgType) Then
                     Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, typeArgument.GetLocation(), typeArgType.Name)
                     context.ReportDiagnostic(diagnostic)
                 End If
@@ -60,14 +57,14 @@ Public Class RefStructBCX32061Analyzer
         End If
     End Sub
 
-    Private Sub AnalyzeTypeConstraint(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeTypeConstraint(context As SyntaxNodeAnalysisContext)
         Dim constraintNode = DirectCast(context.Node, TypeConstraintSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
         ' Check if the constraint type is a restricted type
         Dim constraintType = semanticModel.GetTypeInfo(constraintNode.Type, cancellationToken).Type
-        If constraintType IsNot Nothing AndAlso IsRestrictedType(constraintType, restrictedTypeCache) Then
+        If constraintType IsNot Nothing AndAlso IsRestrictedType(constraintType) Then
             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, constraintNode.Type.GetLocation(), constraintType.Name)
             context.ReportDiagnostic(diagnostic)
         End If

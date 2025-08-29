@@ -34,28 +34,25 @@ Public Class RefStructBCX31396Analyzer
     End Sub
 
     Private Sub CompilationStartAction(context As CompilationStartAnalysisContext)
-        ' Create a cache for restricted type checks to improve performance
-        Dim restrictedTypeCache As New ConcurrentDictionary(Of ITypeSymbol, Boolean)(SymbolEqualityComparer.Default)
-
         ' Register for various syntax node actions to catch different scenarios
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeNullableType(ctx, restrictedTypeCache), SyntaxKind.NullableType)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeArrayType(ctx, restrictedTypeCache), SyntaxKind.ArrayType)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeFieldDeclaration(ctx, restrictedTypeCache), SyntaxKind.FieldDeclaration)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzePropertyDeclaration(ctx, restrictedTypeCache), SyntaxKind.PropertyStatement)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzePropertyBlock(ctx, restrictedTypeCache), SyntaxKind.PropertyBlock)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeParameter(ctx, restrictedTypeCache), SyntaxKind.Parameter)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeAnonymousObjectCreation(ctx, restrictedTypeCache), SyntaxKind.AnonymousObjectCreationExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeCollectionInitializer(ctx, restrictedTypeCache), SyntaxKind.CollectionInitializer)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeArrayLiteral(ctx, restrictedTypeCache), SyntaxKind.CollectionInitializer)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeLocalDeclaration(ctx, restrictedTypeCache), SyntaxKind.LocalDeclarationStatement)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeVariableDeclarator(ctx, restrictedTypeCache), SyntaxKind.VariableDeclarator)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeEqualsValue(ctx, restrictedTypeCache), SyntaxKind.EqualsValue)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeObjectCollectionInitializer(ctx, restrictedTypeCache), SyntaxKind.ObjectCollectionInitializer)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeFunctionReturn(ctx, restrictedTypeCache), SyntaxKind.FunctionStatement)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeOperatorReturn(ctx, restrictedTypeCache), SyntaxKind.OperatorStatement)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeNullableType, SyntaxKind.NullableType)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeArrayType, SyntaxKind.ArrayType)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeFieldDeclaration, SyntaxKind.FieldDeclaration)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzePropertyDeclaration, SyntaxKind.PropertyStatement)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzePropertyBlock, SyntaxKind.PropertyBlock)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeParameter, SyntaxKind.Parameter)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeAnonymousObjectCreation, SyntaxKind.AnonymousObjectCreationExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeCollectionInitializer, SyntaxKind.CollectionInitializer)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeArrayLiteral, SyntaxKind.CollectionInitializer)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeLocalDeclaration, SyntaxKind.LocalDeclarationStatement)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeVariableDeclarator, SyntaxKind.VariableDeclarator)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeEqualsValue, SyntaxKind.EqualsValue)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeObjectCollectionInitializer, SyntaxKind.ObjectCollectionInitializer)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeFunctionReturn, SyntaxKind.FunctionStatement)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeOperatorReturn, SyntaxKind.OperatorStatement)
     End Sub
 
-    Private Sub AnalyzeFunctionReturn(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeFunctionReturn(context As SyntaxNodeAnalysisContext)
         Dim functionNode = DirectCast(context.Node, MethodStatementSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -63,14 +60,14 @@ Public Class RefStructBCX31396Analyzer
         ' Check function return type
         If functionNode.AsClause IsNot Nothing Then
             Dim returnType = semanticModel.GetTypeInfo(functionNode.AsClause.Type, cancellationToken).Type
-            If returnType IsNot Nothing AndAlso IsRestrictedType(returnType, restrictedTypeCache) Then
+            If returnType IsNot Nothing AndAlso IsRestrictedType(returnType) Then
                 Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, functionNode.AsClause.Type.GetLocation(), returnType.Name)
                 context.ReportDiagnostic(diagnostic)
             End If
         End If
     End Sub
 
-    Private Sub AnalyzeOperatorReturn(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeOperatorReturn(context As SyntaxNodeAnalysisContext)
         Dim operatorNode = DirectCast(context.Node, OperatorStatementSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -78,7 +75,7 @@ Public Class RefStructBCX31396Analyzer
         ' Check operator return type
         If operatorNode.AsClause IsNot Nothing Then
             Dim returnType = semanticModel.GetTypeInfo(operatorNode.AsClause.Type, cancellationToken).Type
-            If returnType IsNot Nothing AndAlso IsRestrictedType(returnType, restrictedTypeCache) Then
+            If returnType IsNot Nothing AndAlso IsRestrictedType(returnType) Then
                 Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, operatorNode.AsClause.Type.GetLocation(), returnType.Name)
                 context.ReportDiagnostic(diagnostic)
             End If
@@ -86,33 +83,33 @@ Public Class RefStructBCX31396Analyzer
     End Sub
 
 
-    Private Sub AnalyzeNullableType(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeNullableType(context As SyntaxNodeAnalysisContext)
         Dim nullableTypeNode = DirectCast(context.Node, NullableTypeSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
         ' Get the underlying type
         Dim underlyingType = semanticModel.GetTypeInfo(nullableTypeNode.ElementType, cancellationToken).Type
-        If underlyingType IsNot Nothing AndAlso IsRestrictedType(underlyingType, restrictedTypeCache) Then
+        If underlyingType IsNot Nothing AndAlso IsRestrictedType(underlyingType) Then
             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, nullableTypeNode.GetLocation(), underlyingType.Name)
             context.ReportDiagnostic(diagnostic)
         End If
     End Sub
 
-    Private Sub AnalyzeArrayType(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeArrayType(context As SyntaxNodeAnalysisContext)
         Dim arrayTypeNode = DirectCast(context.Node, ArrayTypeSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
         ' Get the element type
         Dim elementType = semanticModel.GetTypeInfo(arrayTypeNode.ElementType, cancellationToken).Type
-        If elementType IsNot Nothing AndAlso IsRestrictedType(elementType, restrictedTypeCache) Then
+        If elementType IsNot Nothing AndAlso IsRestrictedType(elementType) Then
             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, arrayTypeNode.GetLocation(), elementType.Name)
             context.ReportDiagnostic(diagnostic)
         End If
     End Sub
 
-    Private Sub AnalyzeFieldDeclaration(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeFieldDeclaration(context As SyntaxNodeAnalysisContext)
         Dim fieldDeclNode = DirectCast(context.Node, FieldDeclarationSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -121,7 +118,7 @@ Public Class RefStructBCX31396Analyzer
         For Each declarator In fieldDeclNode.Declarators
             If declarator.AsClause IsNot Nothing Then
                 Dim fieldType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
-                If fieldType IsNot Nothing AndAlso IsRestrictedType(fieldType, restrictedTypeCache) Then
+                If fieldType IsNot Nothing AndAlso IsRestrictedType(fieldType) Then
                     ' Check if the containing type is a class (not a restricted struct)
                     Dim containingTypeSymbol = TryCast(semanticModel.GetDeclaredSymbol(fieldDeclNode.Parent, cancellationToken), INamedTypeSymbol)
                     If containingTypeSymbol IsNot Nothing Then
@@ -129,7 +126,7 @@ Public Class RefStructBCX31396Analyzer
                         If containingTypeSymbol.TypeKind = TypeKind.Class Then
                             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), fieldType.Name)
                             context.ReportDiagnostic(diagnostic)
-                        ElseIf containingTypeSymbol.TypeKind = TypeKind.Structure AndAlso Not IsRestrictedType(containingTypeSymbol, restrictedTypeCache) Then
+                        ElseIf containingTypeSymbol.TypeKind = TypeKind.Structure AndAlso Not IsRestrictedType(containingTypeSymbol) Then
                             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), fieldType.Name)
                             context.ReportDiagnostic(diagnostic)
                         End If
@@ -139,14 +136,14 @@ Public Class RefStructBCX31396Analyzer
         Next
     End Sub
 
-    Private Sub AnalyzePropertyDeclaration(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzePropertyDeclaration(context As SyntaxNodeAnalysisContext)
         Dim propertyNode = DirectCast(context.Node, PropertyStatementSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
         If propertyNode.AsClause IsNot Nothing Then
             Dim propertyType = semanticModel.GetTypeInfo(propertyNode.AsClause.Type, cancellationToken).Type
-            If propertyType IsNot Nothing AndAlso IsRestrictedType(propertyType, restrictedTypeCache) Then
+            If propertyType IsNot Nothing AndAlso IsRestrictedType(propertyType) Then
                 ' Check if the containing type is a class (not a restricted struct)
                 Dim containingTypeSymbol = TryCast(semanticModel.GetDeclaredSymbol(propertyNode.Parent, cancellationToken), INamedTypeSymbol)
                 If containingTypeSymbol IsNot Nothing Then
@@ -154,7 +151,7 @@ Public Class RefStructBCX31396Analyzer
                     If containingTypeSymbol.TypeKind = TypeKind.Class Then
                         Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, propertyNode.AsClause.Type.GetLocation(), propertyType.Name)
                         context.ReportDiagnostic(diagnostic)
-                    ElseIf containingTypeSymbol.TypeKind = TypeKind.Structure AndAlso Not IsRestrictedType(containingTypeSymbol, restrictedTypeCache) Then
+                    ElseIf containingTypeSymbol.TypeKind = TypeKind.Structure AndAlso Not IsRestrictedType(containingTypeSymbol) Then
                         Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, propertyNode.AsClause.Type.GetLocation(), propertyType.Name)
                         context.ReportDiagnostic(diagnostic)
                     End If
@@ -163,7 +160,7 @@ Public Class RefStructBCX31396Analyzer
         End If
     End Sub
 
-    Private Sub AnalyzePropertyBlock(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzePropertyBlock(context As SyntaxNodeAnalysisContext)
         Dim propertyBlockNode = DirectCast(context.Node, PropertyBlockSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -171,7 +168,7 @@ Public Class RefStructBCX31396Analyzer
         ' Analyze the property statement
         If propertyBlockNode.PropertyStatement.AsClause IsNot Nothing Then
             Dim propertyType = semanticModel.GetTypeInfo(propertyBlockNode.PropertyStatement.AsClause.Type, cancellationToken).Type
-            If propertyType IsNot Nothing AndAlso IsRestrictedType(propertyType, restrictedTypeCache) Then
+            If propertyType IsNot Nothing AndAlso IsRestrictedType(propertyType) Then
                 ' Check if the containing type is a class (not a restricted struct)
                 Dim containingTypeSymbol = TryCast(semanticModel.GetDeclaredSymbol(propertyBlockNode.Parent, cancellationToken), INamedTypeSymbol)
                 If containingTypeSymbol IsNot Nothing Then
@@ -189,14 +186,14 @@ Public Class RefStructBCX31396Analyzer
         End If
     End Sub
 
-    Private Sub AnalyzeParameter(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeParameter(context As SyntaxNodeAnalysisContext)
         Dim parameterNode = DirectCast(context.Node, ParameterSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
         If parameterNode.AsClause IsNot Nothing Then
             Dim parameterType = semanticModel.GetTypeInfo(parameterNode.AsClause.Type, cancellationToken).Type
-            If parameterType IsNot Nothing AndAlso IsRestrictedType(parameterType, restrictedTypeCache) Then
+            If parameterType IsNot Nothing AndAlso IsRestrictedType(parameterType) Then
                 ' Check if it's a ByRef parameter
                 If parameterNode.Modifiers.Any(Function(m) m.IsKind(SyntaxKind.ByRefKeyword)) Then
                     Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, parameterNode.AsClause.Type.GetLocation(), parameterType.Name)
@@ -206,7 +203,7 @@ Public Class RefStructBCX31396Analyzer
         End If
     End Sub
 
-    Private Sub AnalyzeAnonymousObjectCreation(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeAnonymousObjectCreation(context As SyntaxNodeAnalysisContext)
         Dim anonCreationNode = DirectCast(context.Node, AnonymousObjectCreationExpressionSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -223,7 +220,7 @@ Public Class RefStructBCX31396Analyzer
 
                 If fieldInitExpr IsNot Nothing Then
                     Dim initializerType = semanticModel.GetTypeInfo(fieldInitExpr, cancellationToken).Type
-                    If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType, restrictedTypeCache) Then
+                    If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType) Then
                         Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, fieldInitExpr.GetLocation(), initializerType.Name)
                         context.ReportDiagnostic(diagnostic)
                     End If
@@ -232,7 +229,7 @@ Public Class RefStructBCX31396Analyzer
         End If
     End Sub
 
-    Private Sub AnalyzeCollectionInitializer(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeCollectionInitializer(context As SyntaxNodeAnalysisContext)
         Dim collectionInitNode = DirectCast(context.Node, CollectionInitializerSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -240,14 +237,14 @@ Public Class RefStructBCX31396Analyzer
         ' Check each expression in the collection initializer
         For Each expr In collectionInitNode.Initializers
             Dim exprType = semanticModel.GetTypeInfo(expr, cancellationToken).Type
-            If exprType IsNot Nothing AndAlso IsRestrictedType(exprType, restrictedTypeCache) Then
+            If exprType IsNot Nothing AndAlso IsRestrictedType(exprType) Then
                 Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, expr.GetLocation(), exprType.Name)
                 context.ReportDiagnostic(diagnostic)
             End If
         Next
     End Sub
 
-    Private Sub AnalyzeArrayLiteral(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeArrayLiteral(context As SyntaxNodeAnalysisContext)
         Dim arrayLiteralNode = DirectCast(context.Node, CollectionInitializerSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -255,14 +252,14 @@ Public Class RefStructBCX31396Analyzer
         ' Check each expression in the array literal
         For Each expr In arrayLiteralNode.Initializers
             Dim exprType = semanticModel.GetTypeInfo(expr, cancellationToken).Type
-            If exprType IsNot Nothing AndAlso IsRestrictedType(exprType, restrictedTypeCache) Then
+            If exprType IsNot Nothing AndAlso IsRestrictedType(exprType) Then
                 Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, expr.GetLocation(), exprType.Name)
                 context.ReportDiagnostic(diagnostic)
             End If
         Next
     End Sub
 
-    Private Sub AnalyzeLocalDeclaration(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeLocalDeclaration(context As SyntaxNodeAnalysisContext)
         Dim localDeclNode = DirectCast(context.Node, LocalDeclarationStatementSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -273,7 +270,7 @@ Public Class RefStructBCX31396Analyzer
             For Each declarator In localDeclNode.Declarators
                 If declarator.AsClause IsNot Nothing Then
                     Dim fieldType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
-                    If fieldType IsNot Nothing AndAlso IsRestrictedType(fieldType, restrictedTypeCache) Then
+                    If fieldType IsNot Nothing AndAlso IsRestrictedType(fieldType) Then
                         ' Static declarations in methods are compiled as fields in the class
                         ' Report diagnostic for restricted types in Static declarations
                         Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), fieldType.Name)
@@ -310,7 +307,7 @@ Public Class RefStructBCX31396Analyzer
                 If variableType IsNot Nothing AndAlso IsNullableOfType(variableType) Then
                     ' Get the underlying type T from Nullable(Of T)
                     Dim underlyingType = GetNullableUnderlyingType(variableType)
-                    If underlyingType IsNot Nothing AndAlso IsRestrictedType(underlyingType, restrictedTypeCache) Then
+                    If underlyingType IsNot Nothing AndAlso IsRestrictedType(underlyingType) Then
                         Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.GetLocation(), underlyingType.Name)
                         context.ReportDiagnostic(diagnostic)
                     End If
@@ -326,14 +323,14 @@ Public Class RefStructBCX31396Analyzer
                     ' 当变量名有问号修饰时，需要检查 AsClause 的类型是否为受限类型
                     If declarator.AsClause IsNot Nothing Then
                         Dim asType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
-                        If asType IsNot Nothing AndAlso IsRestrictedType(asType, restrictedTypeCache) Then
+                        If asType IsNot Nothing AndAlso IsRestrictedType(asType) Then
                             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), asType.Name)
                             context.ReportDiagnostic(diagnostic)
                         End If
                     ElseIf declarator.Initializer IsNot Nothing Then
                         ' Check for Dim nullableSpan? = span (type inference from initializer)
                         Dim initializerType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
-                        If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType, restrictedTypeCache) Then
+                        If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType) Then
                             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, name.GetLocation(), initializerType.Name)
                             context.ReportDiagnostic(diagnostic)
                         End If
@@ -348,7 +345,7 @@ Public Class RefStructBCX31396Analyzer
                     ' 这是数组声明，检查 AsClause 的类型是否为受限类型
                     If declarator.AsClause IsNot Nothing Then
                         Dim asType = semanticModel.GetTypeInfo(declarator.AsClause.Type, cancellationToken).Type
-                        If asType IsNot Nothing AndAlso IsRestrictedType(asType, restrictedTypeCache) Then
+                        If asType IsNot Nothing AndAlso IsRestrictedType(asType) Then
                             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, declarator.AsClause.Type.GetLocation(), asType.Name)
                             context.ReportDiagnostic(diagnostic)
                         End If
@@ -358,7 +355,7 @@ Public Class RefStructBCX31396Analyzer
         Next
     End Sub
 
-    Private Sub AnalyzeVariableDeclarator(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeVariableDeclarator(context As SyntaxNodeAnalysisContext)
         Dim variableDeclaratorNode = DirectCast(context.Node, VariableDeclaratorSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -368,10 +365,10 @@ Public Class RefStructBCX31396Analyzer
         If containingSymbol IsNot Nothing AndAlso containingSymbol.Kind = SymbolKind.NamedType Then
             Dim containingType = TryCast(containingSymbol, INamedTypeSymbol)
             ' Check if containing type is a struct but not restricted
-            If containingType IsNot Nothing AndAlso containingType.TypeKind = TypeKind.Structure AndAlso Not IsRestrictedType(containingType, restrictedTypeCache) Then
+            If containingType IsNot Nothing AndAlso containingType.TypeKind = TypeKind.Structure AndAlso Not IsRestrictedType(containingType) Then
                 If variableDeclaratorNode.AsClause IsNot Nothing Then
                     Dim fieldType = semanticModel.GetTypeInfo(variableDeclaratorNode.AsClause.Type, cancellationToken).Type
-                    If fieldType IsNot Nothing AndAlso IsRestrictedType(fieldType, restrictedTypeCache) Then
+                    If fieldType IsNot Nothing AndAlso IsRestrictedType(fieldType) Then
                         Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, variableDeclaratorNode.AsClause.Type.GetLocation(), fieldType.Name)
                         context.ReportDiagnostic(diagnostic)
                     End If
@@ -380,14 +377,14 @@ Public Class RefStructBCX31396Analyzer
         End If
     End Sub
 
-    Private Sub AnalyzeEqualsValue(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeEqualsValue(context As SyntaxNodeAnalysisContext)
         Dim equalsValueNode = DirectCast(context.Node, EqualsValueSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
         ' Get the type of the value being assigned
         Dim valueType = semanticModel.GetTypeInfo(equalsValueNode.Value, cancellationToken).Type
-        If valueType IsNot Nothing AndAlso IsRestrictedType(valueType, restrictedTypeCache) Then
+        If valueType IsNot Nothing AndAlso IsRestrictedType(valueType) Then
             ' Check if this is in a collection initializer context
             Dim parent = equalsValueNode.Parent
             If parent IsNot Nothing Then
@@ -400,7 +397,7 @@ Public Class RefStructBCX31396Analyzer
         End If
     End Sub
 
-    Private Sub AnalyzeObjectCollectionInitializer(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeObjectCollectionInitializer(context As SyntaxNodeAnalysisContext)
         Dim collectionInitNode = DirectCast(context.Node, ObjectCollectionInitializerSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -409,7 +406,7 @@ Public Class RefStructBCX31396Analyzer
         If collectionInitNode.Initializer IsNot Nothing Then
             For Each expr In collectionInitNode.Initializer.Initializers
                 Dim exprType = semanticModel.GetTypeInfo(expr, cancellationToken).Type
-                If exprType IsNot Nothing AndAlso IsRestrictedType(exprType, restrictedTypeCache) Then
+                If exprType IsNot Nothing AndAlso IsRestrictedType(exprType) Then
                     Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, expr.GetLocation(), exprType.Name)
                     context.ReportDiagnostic(diagnostic)
                 End If

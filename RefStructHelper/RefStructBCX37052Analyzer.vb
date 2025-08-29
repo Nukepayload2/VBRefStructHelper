@@ -38,12 +38,12 @@ Public Class RefStructBCX37052Analyzer
         Dim restrictedTypeCache As New ConcurrentDictionary(Of ITypeSymbol, Boolean)(SymbolEqualityComparer.Default)
 
         ' Register for local variable declarations in method blocks
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeMethodBlock(ctx, restrictedTypeCache), SyntaxKind.FunctionBlock)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeMethodBlock(ctx, restrictedTypeCache), SyntaxKind.SubBlock)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeMethodBlock, SyntaxKind.FunctionBlock)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeMethodBlock, SyntaxKind.SubBlock)
     End Sub
 
 
-    Private Sub AnalyzeMethodBlock(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeMethodBlock(context As SyntaxNodeAnalysisContext)
         Dim methodBlock = DirectCast(context.Node, MethodBlockBaseSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -57,10 +57,10 @@ Public Class RefStructBCX37052Analyzer
         For Each node In methodBlock.DescendantNodes()
             If node.IsKind(SyntaxKind.VariableDeclarator) Then
                 Dim variableDeclarator = DirectCast(node, VariableDeclaratorSyntax)
-                AnalyzeVariableDeclarator(variableDeclarator, context, restrictedTypeCache, semanticModel, cancellationToken)
+                AnalyzeVariableDeclarator(variableDeclarator, context, semanticModel, cancellationToken)
             End If
         Next
-        
+
         ' Check method parameters
         Dim methodStatement As MethodStatementSyntax = Nothing
         Select Case methodBlock.Kind()
@@ -74,18 +74,17 @@ Public Class RefStructBCX37052Analyzer
 
         If methodStatement IsNot Nothing AndAlso methodStatement.ParameterList IsNot Nothing Then
             For Each parameter In methodStatement.ParameterList.Parameters
-                AnalyzeParameter(parameter, context, restrictedTypeCache, semanticModel, cancellationToken)
+                AnalyzeParameter(parameter, context, semanticModel, cancellationToken)
             Next
         End If
     End Sub
 
     Private Sub AnalyzeParameter(parameter As ParameterSyntax, context As SyntaxNodeAnalysisContext,
-                               restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                               semanticModel As SemanticModel, cancellationToken As CancellationToken)
+                                                              semanticModel As SemanticModel, cancellationToken As CancellationToken)
         
         If parameter.AsClause IsNot Nothing Then
             Dim parameterType = semanticModel.GetTypeInfo(parameter.AsClause.Type, cancellationToken).Type
-            If parameterType IsNot Nothing AndAlso IsRestrictedType(parameterType, restrictedTypeCache) Then
+            If parameterType IsNot Nothing AndAlso IsRestrictedType(parameterType) Then
                 ReportDiagnostic(context, parameter.AsClause.Type, parameterType)
             End If
         End If
@@ -116,8 +115,7 @@ Public Class RefStructBCX37052Analyzer
     End Function
 
     Private Sub AnalyzeVariableDeclarator(variableDeclarator As VariableDeclaratorSyntax, context As SyntaxNodeAnalysisContext,
-                                         restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
-                                         semanticModel As SemanticModel, cancellationToken As CancellationToken)
+                                                                                  semanticModel As SemanticModel, cancellationToken As CancellationToken)
         
         For Each name In variableDeclarator.Names
             Dim symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken)
@@ -125,7 +123,7 @@ Public Class RefStructBCX37052Analyzer
                 Dim localSymbol = DirectCast(symbolInfo.Symbol, ILocalSymbol)
                 Dim variableType = localSymbol.Type
                 
-                If variableType IsNot Nothing AndAlso IsRestrictedType(variableType, restrictedTypeCache) Then
+                If variableType IsNot Nothing AndAlso IsRestrictedType(variableType) Then
                     ReportDiagnostic(context, name, variableType)
                     Return ' Only report once per declarator
                 End If
@@ -136,7 +134,7 @@ Public Class RefStructBCX37052Analyzer
         If variableDeclarator.Initializer IsNot Nothing AndAlso variableDeclarator.AsClause Is Nothing Then
             ' This is a Dim x = expression case with type inference
             Dim initializerType = semanticModel.GetTypeInfo(variableDeclarator.Initializer.Value, cancellationToken).Type
-            If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType, restrictedTypeCache) Then
+            If initializerType IsNot Nothing AndAlso IsRestrictedType(initializerType) Then
                 ReportDiagnostic(context, variableDeclarator.Names.First(), initializerType)
             End If
         End If
@@ -144,7 +142,7 @@ Public Class RefStructBCX37052Analyzer
         ' Check explicit type declarations
         If variableDeclarator.AsClause IsNot Nothing AndAlso variableDeclarator.AsClause.Type IsNot Nothing Then
             Dim explicitType = semanticModel.GetTypeInfo(variableDeclarator.AsClause.Type, cancellationToken).Type
-            If explicitType IsNot Nothing AndAlso IsRestrictedType(explicitType, restrictedTypeCache) Then
+            If explicitType IsNot Nothing AndAlso IsRestrictedType(explicitType) Then
                 ReportDiagnostic(context, variableDeclarator.Names.First(), explicitType)
             End If
         End If

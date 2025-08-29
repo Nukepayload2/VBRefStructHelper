@@ -1,7 +1,9 @@
-﻿Imports System.Collections.Concurrent
+﻿Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
 
 Module SymbolHelper
+
+    Private ReadOnly _restrictedTypeCache As New ConditionalWeakTable(Of ITypeSymbol, StrongBox(Of Boolean))
 
     Function IsReferenceType(typeSymbol As ITypeSymbol) As Boolean
         If typeSymbol Is Nothing Then Return False
@@ -12,24 +14,24 @@ Module SymbolHelper
         Return typeSymbol.SpecialType = SpecialType.System_Object OrElse typeSymbol.SpecialType = SpecialType.System_ValueType
     End Function
 
-    Function IsRestrictedType(typeSymbol As ITypeSymbol, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean)) As Boolean
+    Function IsRestrictedType(typeSymbol As ITypeSymbol) As Boolean
         If typeSymbol Is Nothing Then Return False
 
         ' Check cache first to improve performance
-        Dim isRestricted As Boolean
-        If restrictedTypeCache.TryGetValue(typeSymbol, isRestricted) Then
-            Return isRestricted
+        Dim cachedValue As StrongBox(Of Boolean)
+        If _restrictedTypeCache.TryGetValue(typeSymbol, cachedValue) Then
+            Return cachedValue.Value
         End If
 
         ' Check if the type has System.Runtime.CompilerServices.IsByRefLikeAttribute
         For Each attribute In typeSymbol.GetAttributes()
             If attribute.AttributeClass?.ToDisplayString() = "System.Runtime.CompilerServices.IsByRefLikeAttribute" Then
-                restrictedTypeCache.TryAdd(typeSymbol, True)
+                _restrictedTypeCache.GetOrCreateValue(typeSymbol).Value = True
                 Return True
             End If
         Next
 
-        restrictedTypeCache.TryAdd(typeSymbol, False)
+        _restrictedTypeCache.GetOrCreateValue(typeSymbol).Value = False
         Return False
     End Function
 

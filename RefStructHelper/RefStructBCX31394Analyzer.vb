@@ -34,24 +34,21 @@ Public Class RefStructBCX31394Analyzer
     End Sub
 
     Private Sub CompilationStartAction(context As CompilationStartAnalysisContext)
-        ' Create a cache for restricted type checks to improve performance
-        Dim restrictedTypeCache As New ConcurrentDictionary(Of ITypeSymbol, Boolean)(SymbolEqualityComparer.Default)
-
         ' Register for syntax node actions to catch various conversion scenarios
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeCastExpression(ctx, restrictedTypeCache), SyntaxKind.CTypeExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeCastExpression(ctx, restrictedTypeCache), SyntaxKind.DirectCastExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeCastExpression(ctx, restrictedTypeCache), SyntaxKind.TryCastExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeCastExpression(ctx, restrictedTypeCache), SyntaxKind.PredefinedCastExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeAssignment(ctx, restrictedTypeCache), SyntaxKind.SimpleAssignmentStatement)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeArgument(ctx, restrictedTypeCache), SyntaxKind.SimpleArgument)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeReturnStatement(ctx, restrictedTypeCache), SyntaxKind.ReturnStatement)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeLocalDeclaration(ctx, restrictedTypeCache), SyntaxKind.LocalDeclarationStatement)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeObjectCreation(ctx, restrictedTypeCache), SyntaxKind.ObjectCreationExpression)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeRaiseEvent(ctx, restrictedTypeCache), SyntaxKind.RaiseEventStatement)
-        context.RegisterSyntaxNodeAction(Sub(ctx) AnalyzeNamedFieldInitializer(ctx, restrictedTypeCache), SyntaxKind.NamedFieldInitializer)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeCastExpression, SyntaxKind.CTypeExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeCastExpression, SyntaxKind.DirectCastExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeCastExpression, SyntaxKind.TryCastExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeCastExpression, SyntaxKind.PredefinedCastExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeAssignment, SyntaxKind.SimpleAssignmentStatement)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeArgument, SyntaxKind.SimpleArgument)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeReturnStatement, SyntaxKind.ReturnStatement)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeLocalDeclaration, SyntaxKind.LocalDeclarationStatement)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeObjectCreation, SyntaxKind.ObjectCreationExpression)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeRaiseEvent, SyntaxKind.RaiseEventStatement)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeNamedFieldInitializer, SyntaxKind.NamedFieldInitializer)
     End Sub
 
-    Private Sub AnalyzeRaiseEvent(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeRaiseEvent(context As SyntaxNodeAnalysisContext)
         Dim raiseEventNode = DirectCast(context.Node, RaiseEventStatementSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -82,12 +79,12 @@ Public Class RefStructBCX31394Analyzer
                 End If
 
                 ' Check for restricted type conversion to Object or ValueType
-                CheckRestrictedConversion(expressionType, targetType, argNode, context, restrictedTypeCache)
+                CheckRestrictedConversion(expressionType, targetType, argNode, context)
             Next
         End If
     End Sub
 
-    Private Sub AnalyzeObjectCreation(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeObjectCreation(context As SyntaxNodeAnalysisContext)
         Dim creationNode = DirectCast(context.Node, ObjectCreationExpressionSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -114,12 +111,12 @@ Public Class RefStructBCX31394Analyzer
             End If
 
             ' Check for restricted type conversion to Object or ValueType
-            CheckRestrictedConversion(expressionType, targetType, argNode, context, restrictedTypeCache)
+            CheckRestrictedConversion(expressionType, targetType, argNode, context)
         Next
     End Sub
 
 
-    Private Sub AnalyzeCastExpression(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeCastExpression(context As SyntaxNodeAnalysisContext)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
 
@@ -132,7 +129,7 @@ Public Class RefStructBCX31394Analyzer
                 Dim targetType = semanticModel.GetTypeInfo(castNode.Type, cancellationToken).Type
 
                 ' Check for restricted type conversion to Object or ValueType
-                CheckRestrictedConversion(expressionType, targetType, castNode, context, restrictedTypeCache)
+                CheckRestrictedConversion(expressionType, targetType, castNode, context)
 
             Case SyntaxKind.PredefinedCastExpression
                 Dim castNode = DirectCast(context.Node, PredefinedCastExpressionSyntax)
@@ -144,11 +141,11 @@ Public Class RefStructBCX31394Analyzer
                 Dim objectType = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object)
 
                 ' Check for restricted type conversion to Object
-                CheckRestrictedConversion(expressionType, objectType, castNode, context, restrictedTypeCache)
+                CheckRestrictedConversion(expressionType, objectType, castNode, context)
         End Select
     End Sub
 
-    Private Sub AnalyzeAssignment(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeAssignment(context As SyntaxNodeAnalysisContext)
         Dim assignmentNode = DirectCast(context.Node, AssignmentStatementSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -158,10 +155,10 @@ Public Class RefStructBCX31394Analyzer
         Dim targetType = semanticModel.GetTypeInfo(assignmentNode.Left, cancellationToken).Type
 
         ' Check for restricted type conversion to Object or ValueType
-        CheckRestrictedConversion(expressionType, targetType, assignmentNode.Right, context, restrictedTypeCache)
+        CheckRestrictedConversion(expressionType, targetType, assignmentNode.Right, context)
     End Sub
 
-    Private Sub AnalyzeArgument(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeArgument(context As SyntaxNodeAnalysisContext)
         Dim argNode = DirectCast(context.Node, SimpleArgumentSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -178,11 +175,11 @@ Public Class RefStructBCX31394Analyzer
 
         ' Check for restricted type conversion to Object or ValueType
         If targetType IsNot Nothing Then
-            CheckRestrictedConversion(expressionType, targetType, argNode, context, restrictedTypeCache)
+            CheckRestrictedConversion(expressionType, targetType, argNode, context)
         End If
     End Sub
 
-    Private Sub AnalyzeReturnStatement(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeReturnStatement(context As SyntaxNodeAnalysisContext)
         Dim returnNode = DirectCast(context.Node, ReturnStatementSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -204,11 +201,11 @@ Public Class RefStructBCX31394Analyzer
         If methodSymbol IsNot Nothing Then
             Dim returnType = methodSymbol.ReturnType
             ' Check for restricted type conversion to Object or ValueType
-            CheckRestrictedConversion(expressionType, returnType, returnNode.Expression, context, restrictedTypeCache)
+            CheckRestrictedConversion(expressionType, returnType, returnNode.Expression, context)
         End If
     End Sub
 
-    Private Sub AnalyzeLocalDeclaration(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeLocalDeclaration(context As SyntaxNodeAnalysisContext)
         Dim localDeclNode = DirectCast(context.Node, LocalDeclarationStatementSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -232,7 +229,7 @@ Public Class RefStructBCX31394Analyzer
                 Dim initializerType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type
 
                 ' Check for restricted type conversion to Object or ValueType
-                CheckRestrictedConversion(initializerType, variableType, declarator.Initializer.Value, context, restrictedTypeCache)
+                CheckRestrictedConversion(initializerType, variableType, declarator.Initializer.Value, context)
             End If
         Next
     End Sub
@@ -241,11 +238,10 @@ Public Class RefStructBCX31394Analyzer
                                           targetType As ITypeSymbol,
                                           node As SyntaxNode,
                                           context As SyntaxNodeAnalysisContext,
-                                          restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean),
                                           <CallerMemberName> Optional callerName As String = Nothing)
         ' Check if this is a restricted type being converted to Object or ValueType
         If expressionType Is Nothing OrElse targetType Is Nothing Then Return
-        If IsRestrictedType(expressionType, restrictedTypeCache) AndAlso IsReferenceType(targetType) Then
+        If IsRestrictedType(expressionType) AndAlso IsReferenceType(targetType) Then
             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, node.GetLocation(), expressionType.Name)
             context.ReportDiagnostic(diagnostic)
         End If
@@ -287,7 +283,7 @@ Public Class RefStructBCX31394Analyzer
         Return Nothing
     End Function
 
-    Private Sub AnalyzeNamedFieldInitializer(context As SyntaxNodeAnalysisContext, restrictedTypeCache As ConcurrentDictionary(Of ITypeSymbol, Boolean))
+    Private Sub AnalyzeNamedFieldInitializer(context As SyntaxNodeAnalysisContext)
         Dim fieldInitNode = DirectCast(context.Node, NamedFieldInitializerSyntax)
         Dim semanticModel = context.SemanticModel
         Dim cancellationToken = context.CancellationToken
@@ -299,6 +295,6 @@ Public Class RefStructBCX31394Analyzer
             targetType = If(TryCast(fieldSymbol, IFieldSymbol)?.Type, TryCast(fieldSymbol, IPropertySymbol)?.Type)
         End If
         Dim expressionSymbol = TryCast(semanticModel.GetSymbolInfo(fieldInitNode.Expression, cancellationToken).Symbol, ILocalSymbol)
-        CheckRestrictedConversion(expressionSymbol.Type, targetType, fieldInitNode.Expression, context, restrictedTypeCache)
+        CheckRestrictedConversion(expressionSymbol.Type, targetType, fieldInitNode.Expression, context)
     End Sub
 End Class
