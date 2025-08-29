@@ -3,20 +3,20 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 <TestClass>
 Public Class RefStructBCX32061AnalyzerTests
 
-    Private Shared Sub AssertThatShouldHaveError(snippetContent As String, source As String)
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+    Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
             Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX32061"), $"应该检测到 BCX32061 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
-    Private Shared Sub AssertThatShouldNotHaveError(snippetContent As String, source As String)
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+    Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
             Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX32061"), $"不应该检测到 BCX32061 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatDiagTriggeredInSub(snippetContent As String)
-        Dim source As String = $"
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -29,11 +29,11 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldHaveError(snippetContent, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     Private Shared Sub AssertThatDiagTriggeredInClass(snippetContent As String)
-        Dim source As String = $"
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -42,7 +42,7 @@ Class TestClass
     {snippetContent}
 End Class
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' ====================
@@ -123,7 +123,7 @@ End Function"
 
     <TestMethod>
     Public Sub TestRestrictedTypeAsTypeConstraint()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -133,22 +133,22 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestRestrictedTypeAsTypeConstraint2()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
-    Sub TestMethod(Of T As {Span(Of Integer), IDisposable})()
+    Sub TestMethod(Of T As {{Span(Of Integer), IDisposable}})()
     End Sub
 End Class
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' ====================
@@ -345,7 +345,7 @@ End Class
 
     <TestMethod>
     Public Sub TestRestrictedTypeInRestrictedStructGenericParameter()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -355,12 +355,12 @@ Structure RestrictedStruct
     Public field As List(Of Span(Of Integer))
 End Structure
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestRestrictedTypeInRestrictedStructGenericProperty()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -370,12 +370,12 @@ Structure RestrictedStruct
     Public Property MyProp As Dictionary(Of String, Span(Of Integer))
 End Structure
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestRestrictedTypeInRestrictedStructGenericMethod()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -386,12 +386,12 @@ Structure RestrictedStruct
     End Sub
 End Structure
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestRestrictedTypeInRestrictedStructGenericFunction()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -403,7 +403,7 @@ Structure RestrictedStruct
     End Function
 End Structure
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' ====================
@@ -412,7 +412,7 @@ End Structure
 
     <TestMethod>
     Public Sub TestNormalGenericUsage()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Collections.Generic
 
@@ -423,12 +423,12 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestNormalGenericConstraint()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 
 Class TestClass
@@ -436,7 +436,7 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
 End Class

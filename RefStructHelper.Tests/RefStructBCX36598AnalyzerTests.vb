@@ -3,20 +3,20 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 <TestClass>
 Public Class RefStructBCX36598AnalyzerTests
 
-    Private Shared Sub AssertThatShouldHaveError(snippetContent As String, source As String)
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+    Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
             Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX36598"), $"应该检测到 BCX36598 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
-    Private Shared Sub AssertThatShouldNotHaveError(snippetContent As String, source As String)
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+    Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
             Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX36598"), $"不应该检测到 BCX36598 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatDiagTriggeredInSub(snippetContent As String)
-        Dim source As String = $"
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 Imports System.Linq
@@ -30,7 +30,7 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldHaveError(snippetContent, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' ====================
@@ -101,55 +101,55 @@ End Class
 
     <TestMethod>
     Public Sub TestNormalLinqUsage()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim query = From item In arr Where item > 0 Select item
         Dim result = query.ToList()
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestComboLinqUsageInFromIn()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim query = From item In arr.AsSpan.ToArray Where item > 0 Select item
         Dim result = query.ToList()
     End Sub
 End Class
 "
         ' 这是个特例，连续调用的结果如果不是受限类型，那么是允许的
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestNormalLinqWithNormalTypes()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim numbers = {1, 2, 3, 4, 5}
-        Dim strings = {""hello"", ""world""}
-        Dim query = From n In numbers, s In strings Select New With {.Number = n, .Text = s}
+        Dim numbers = {{1, 2, 3, 4, 5}}
+        Dim strings = {{""hello"", ""world""}}
+        Dim query = From n In numbers, s In strings Select New With {{.Number = n, .Text = s}}
         Dim result = query.ToList()
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
 End Class

@@ -3,20 +3,20 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 <TestClass>
 Public Class RefStructBCX31393AnalyzerTests
 
-    Private Shared Sub AssertThatShouldHaveError(snippetContent As String, source As String)
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+    Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
             Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31393"), $"应该检测到 BCX31393 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
-    Private Shared Sub AssertThatShouldNotHaveError(snippetContent As String, source As String)
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+    Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
             Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31393"), $"不应该检测到 BCX31393 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatDiagTriggeredInSub(snippetContent As String)
-        Dim source As String = $"
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -34,7 +34,7 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldHaveError(snippetContent, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' ====================
@@ -91,7 +91,7 @@ End Class
 
     <TestMethod>
     Public Sub TestRegularMembers()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -106,12 +106,12 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestNormalObjectUsage()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 
 Class TestClass
@@ -123,12 +123,12 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestNormalValueTypeUsage()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 
 Class TestClass
@@ -139,7 +139,7 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
 End Class

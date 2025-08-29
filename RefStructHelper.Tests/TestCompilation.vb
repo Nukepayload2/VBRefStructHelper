@@ -10,13 +10,13 @@ Module TestCompilation
     ' 工具方法：编译代码并返回语法树文本和诊断结果
 
     Function GetSyntaxTreeTextAndDiagnostics(source As FormattableString) As (syntaxTreeText As String, diagnostics As ImmutableArray(Of Diagnostic))
-        If source.ArgumentCount <> 1 Then Throw New ArgumentException("必须只有一个格式内插")
+        If source.ArgumentCount > 1 Then Throw New ArgumentException("必须只有一个格式内插")
         ' 创建解析选项
         Dim parseOptions = New VisualBasicParseOptions()
 
         ' 创建语法树
         Dim sourceText = source.ToString
-        Dim syntaxTreeSource = CStr(source.GetArgument(0))
+        Dim syntaxTreeSource = If(source.ArgumentCount > 0, CStr(source.GetArgument(0)), String.Empty)
         Dim syntaxTree = VisualBasicSyntaxTree.ParseText(sourceText, parseOptions)
 
         ' 创建引用（包括系统引用和我们的分析器）

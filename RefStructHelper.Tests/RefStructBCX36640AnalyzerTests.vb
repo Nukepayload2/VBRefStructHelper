@@ -3,20 +3,20 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 <TestClass>
 Public Class RefStructBCX36640AnalyzerTests
 
-    Private Shared Sub AssertThatShouldHaveError(snippetContent As String, source As String)
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+    Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
             Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX36640"), $"应该检测到 BCX36640 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
-    Private Shared Sub AssertThatShouldNotHaveError(snippetContent As String, source As String)
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+    Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
             Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX36640"), $"不应该检测到 BCX36640 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatDiagTriggeredInSub(snippetContent As String)
-        Dim source As String = $"
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -29,7 +29,7 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldHaveError(snippetContent, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' ====================
@@ -149,58 +149,58 @@ End Class
 
     <TestMethod>
     Public Sub TestNormalLocalSpanInMultiLineLambda()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim action As Action = Sub()
-            Dim localArr As Integer() = {6, 7, 8, 9, 10}
+            Dim localArr As Integer() = {{6, 7, 8, 9, 10}}
             Dim localSpan As Span(Of Integer) = localArr.AsSpan()
             Console.WriteLine(localSpan.Length)
         End Sub
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestNormalLocalSpanInMultiLineLambdaFunction()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim func As Func(Of Integer) = Function()
-            Dim localArr As Integer() = {6, 7, 8, 9, 10}
+            Dim localArr As Integer() = {{6, 7, 8, 9, 10}}
             Dim localSpan As Span(Of Integer) = localArr.AsSpan()
             Return localSpan.Length
         End Function
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestNormalLocalSpanWithMultipleOperationsInLambda()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim action As Action = Sub()
-            Dim localArr As Integer() = {6, 7, 8, 9, 10}
+            Dim localArr As Integer() = {{6, 7, 8, 9, 10}}
             Dim localSpan As Span(Of Integer) = localArr.AsSpan()
             Dim slice = localSpan.Slice(1, 2)
             Dim copy = localSpan.ToArray()
@@ -209,19 +209,19 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestNormalLocalSpanInLinqMultiLineLambda()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim result = arr.Select(Function(x)
             Dim localSpan As Span(Of Integer) = arr.AsSpan()
             Return localSpan.Length
@@ -229,7 +229,7 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     ' ====================
@@ -264,38 +264,38 @@ End Class
 
     <TestMethod>
     Public Sub TestNormalLambdaUsage()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim action As Action = Sub() Console.WriteLine(""Hello"")
         Dim func As Func(Of Integer, Integer) = Function(x) x * 2
         Dim result = arr.Select(Function(x) x * 2).ToArray()
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestLambdaWithNormalTypes()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Linq
 
 Class TestClass
     Sub TestMethod()
-        Dim numbers = {1, 2, 3, 4, 5}
-        Dim strings = {""hello"", ""world""}
+        Dim numbers = {{1, 2, 3, 4, 5}}
+        Dim strings = {{""hello"", ""world""}}
         Dim result = numbers.Select(Function(n) n.ToString()).ToArray()
         Dim query = strings.Where(Function(s) s.Length > 3).ToArray()
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
 End Class

@@ -3,20 +3,20 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 <TestClass>
 Public Class RefStructBCX31396AnalyzerTests
 
-    Private Shared Sub AssertThatShouldHaveError(snippetContent As String, source As String)
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+    Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
             Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31396"), $"应该检测到 BCX31396 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
-    Private Shared Sub AssertThatShouldNotHaveError(snippetContent As String, source As String)
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
+    Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
             Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31396"), $"不应该检测到 BCX31396 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatDiagTriggeredInSub(snippetContent As String)
-        Dim source As String = $"
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -29,7 +29,7 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldHaveError(snippetContent, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' ====================
@@ -78,7 +78,7 @@ End Class
 
     <TestMethod>
     Public Sub TestStructWithRestrictedField()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -87,12 +87,12 @@ Structure TestStruct
     Public RestrictedField As Span(Of Integer)
 End Structure
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestStructWithRestrictedAutoProperty()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -101,12 +101,12 @@ Structure TestStruct
     Public Property RestrictedProp As Span(Of Integer)
 End Structure
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestStructWithRestrictedFullProperty()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -123,12 +123,12 @@ Structure TestStruct
     End Property
 End Structure
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestStructWithRestrictedFieldOk()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -138,12 +138,12 @@ Structure TestStruct
     Public RestrictedField As Span(Of Integer)
 End Structure
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestStructWithRestrictedPropertyOk()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -153,12 +153,12 @@ Structure TestStruct
     Public Property RestrictedProp As Span(Of Integer)
 End Structure
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestNonRestrictedStruct()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -172,15 +172,15 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     ' ====================
     ' 类字段/属性测试
     ' ====================
 
-    Private Sub AssertThatDiagTriggeredInClass(snippetContent As String)
-        Dim source As String = $"
+    Private Shared Sub AssertThatDiagTriggeredInClass(snippetContent As String)
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -189,7 +189,7 @@ Class TestClass
     {snippetContent}
 End Class
 "
-        AssertThatShouldHaveError(snippetContent, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
@@ -210,7 +210,7 @@ Public Property RestrictedField As Span(Of Integer)
 
     <TestMethod>
     Public Sub TestClassWithRestrictedFullProperty()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -226,7 +226,7 @@ Class TestClassWithRestrictedProperty
     End Property
 End Class
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
@@ -258,7 +258,7 @@ End Class
 
     <TestMethod>
     Public Sub TestMethodWithRestrictedByRefParameter()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -268,7 +268,7 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' ====================
@@ -413,25 +413,25 @@ End Class
 
     <TestMethod>
     Public Sub TestMethodReturnRestrictedType()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
     Function TestReturn() As Span(Of Integer) ' 应该在这报错，返回类型是受限类型
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim span As Span(Of Integer) = arr.AsSpan()
         Return span
     End Function
 End Class
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestOperatorReturnRestrictedType()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -444,7 +444,7 @@ Class TestClass
 
 End Class
 "
-        AssertThatShouldHaveError(source, source)
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' ====================
@@ -453,7 +453,7 @@ End Class
 
     <TestMethod>
     Public Sub TestRegularMembers()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -467,12 +467,12 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     <TestMethod>
     Public Sub TestRegularMembersRegression1()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -489,7 +489,7 @@ Class TestClass
     End Sub
 End Class
 "
-        AssertThatShouldNotHaveError(source, source)
+        AssertThatShouldNotHaveError(source)
     End Sub
 
 End Class

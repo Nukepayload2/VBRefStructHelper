@@ -3,8 +3,20 @@
 <TestClass>
 Public Class RefStructBCX31394AnalyzerTests
 
-    Private Sub AssertThatDiagTriggeredInSub(snippetContent As String)
-        Dim source As String = $"
+    Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: {vbCrLf}{ .syntaxTreeText}")
+        End With
+    End Sub
+
+    Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
+        With GetSyntaxTreeTextAndDiagnostics(source)
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31394"), $"不应该检测到 BCX31394 诊断。语法树内容: {vbCrLf}{ .syntaxTreeText}")
+        End With
+    End Sub
+
+    Private Shared Sub AssertThatDiagTriggeredInSub(snippetContent As String)
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -38,9 +50,7 @@ Class TestClass
     End Sub
 End Class
 "
-        With GetSyntaxTreeTextAndDiagnostics(source, snippetContent)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: {vbCrLf}{ .syntaxTreeText}")
-        End With
+        AssertThatShouldHaveError(source)
     End Sub
 
     <TestMethod>
@@ -166,69 +176,63 @@ End Class
     ' 从函数返回 Span 作为 Object
     <TestMethod>
     Public Sub TestReturnSpanAsObject()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
     Function TestReturnSpanAsObject() As Object
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim span As Span(Of Integer) = arr.AsSpan()
         Return span
     End Function
 End Class
 "
-        With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
-        End With
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' 从函数返回 Span 作为 ValueType
     <TestMethod>
     Public Sub TestReturnSpanAsValueType()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
     Function TestReturnSpanAsValueType() As ValueType
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim span As Span(Of Integer) = arr.AsSpan()
         Return span
     End Function
 End Class
 "
-        With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
-        End With
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' ReadOnlySpan 的类似测试
     <TestMethod>
     Public Sub TestReadOnlySpanToObject()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
     Sub TestMethod()
-        Dim readOnlySpan As ReadOnlySpan(Of Integer) = {1, 2, 3, 4, 5}
+        Dim readOnlySpan As ReadOnlySpan(Of Integer) = {{1, 2, 3, 4, 5}}
         Dim obj As Object = readOnlySpan  ' 这也应该触发 BCX31394
     End Sub
 End Class
 "
-        With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
-        End With
+        AssertThatShouldHaveError(source)
     End Sub
 
     ' 正确的用法不应该触发
     <TestMethod>
     Public Sub TestCorrectUsage()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -236,7 +240,7 @@ Imports System.Runtime.InteropServices
 Class TestClass
     Sub TestMethod()
         ' 直接使用 Span，不进行装箱转换
-        Dim arr As Integer() = {1, 2, 3, 4, 5}
+        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim span As Span(Of Integer) = arr.AsSpan()
         span(0) = 10
         Dim length As Integer = span.Length
@@ -244,28 +248,24 @@ Class TestClass
     End Sub
 End Class
 "
-        With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31394"), $"不应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
-        End With
+        AssertThatShouldNotHaveError(source)
     End Sub
 
     ' 没有使用 Span 的正常代码不应该触发
     <TestMethod>
     Public Sub TestNormalCode()
-        Dim source As String = "
+        Dim source As FormattableString = $"
 Imports System
 
 Class TestClass
     Sub TestMethod()
         Dim obj As Object = ""hello""
-        Dim arr As Object() = {""hello"", 42}
+        Dim arr As Object() = {{""hello"", 42}}
         Dim valueType As ValueType = 123
     End Sub
 End Class
 "
-        With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31394"), $"不应该检测到 BCX31394 诊断。语法树内容: { .syntaxTreeText}")
-        End With
+        AssertThatShouldNotHaveError(source)
     End Sub
 
 End Class
