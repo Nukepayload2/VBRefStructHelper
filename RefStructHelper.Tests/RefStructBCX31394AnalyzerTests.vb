@@ -232,23 +232,13 @@ End Class
     ' 正确的用法不应该触发
     <TestMethod>
     Public Sub TestCorrectUsage()
-        Dim source As FormattableString = $"
-Imports System
-Imports System.Runtime.InteropServices
-
-<Obsolete(""Suppress default ref struct obsolete errors"")>
-Class TestClass
-    Sub TestMethod()
-        ' 直接使用 Span，不进行装箱转换
-        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim span As Span(Of Integer) = arr.AsSpan()
-        span(0) = 10
-        Dim length As Integer = span.Length
-        ' 这些都是正确的用法，不应该触发
-    End Sub
-End Class
-"
-        AssertThatShouldNotHaveError(source)
+        Dim snippet = "' 直接使用 Span，不进行装箱转换
+Dim arr As Integer() = {1, 2, 3, 4, 5}
+Dim span As Span(Of Integer) = arr.AsSpan()
+span(0) = 10
+Dim length As Integer = span.Length
+' 这些都是正确的用法，不应该触发"
+        AssertThatCorrectInMethod(snippet, True)
     End Sub
 
     ' 没有使用 Span 的正常代码不应该触发
@@ -257,11 +247,25 @@ End Class
         Dim snippet = "Dim obj As Object = ""hello""
 Dim arr As Object() = {""hello"", 42}
 Dim valueType As ValueType = 123"
-        AssertThatCorrectInMethod(snippet)
+        AssertThatCorrectInMethod(snippet, False)
     End Sub
 
-    Private Shared Sub AssertThatCorrectInMethod(snippet As String)
-        Dim source As FormattableString = $"
+    Private Shared Sub AssertThatCorrectInMethod(snippet As String, useRuntimeInterop As Boolean)
+        Dim source As FormattableString
+        If useRuntimeInterop Then
+            source = $"
+Imports System
+Imports System.Runtime.InteropServices
+
+<Obsolete(""Suppress default ref struct obsolete errors"")>
+Class TestClass
+    Sub TestMethod()
+{snippet}
+    End Sub
+End Class
+"
+        Else
+            source = $"
 Imports System
 
 Class TestClass
@@ -270,6 +274,7 @@ Class TestClass
     End Sub
 End Class
 "
+        End If
         AssertThatShouldNotHaveError(source)
     End Sub
 

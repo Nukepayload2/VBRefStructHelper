@@ -287,20 +287,11 @@ End Class
 
     <TestMethod>
     Public Sub TestLambdaWithNormalTypes()
-        Dim source As FormattableString = $"
-Imports System
-Imports System.Linq
-
-Class TestClass
-    Sub TestMethod()
-        Dim numbers = {{1, 2, 3, 4, 5}}
-        Dim strings = {{""hello"", ""world""}}
-        Dim result = numbers.Select(Function(n) n.ToString()).ToArray()
-        Dim query = strings.Where(Function(s) s.Length > 3).ToArray()
-    End Sub
-End Class
-"
-        AssertThatShouldNotHaveError(source)
+        Dim snippet = "Dim numbers = {1, 2, 3, 4, 5}
+Dim strings = {""hello"", ""world""}
+Dim result = numbers.Select(Function(n) n.ToString()).ToArray()
+Dim query = strings.Where(Function(s) s.Length > 3).ToArray()"
+        AssertThatCorrectInMethod(snippet)
     End Sub
 
 End Class

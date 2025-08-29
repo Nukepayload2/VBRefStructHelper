@@ -123,38 +123,19 @@ End Class
 
     <TestMethod>
     Public Sub TestComboLinqUsageInFromIn()
-        Dim source As FormattableString = $"
-Imports System
-Imports System.Linq
-
-Class TestClass
-    Sub TestMethod()
-        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim query = From item In arr.AsSpan.ToArray Where item > 0 Select item
-        Dim result = query.ToList()
-    End Sub
-End Class
-"
-        ' 这是个特例，连续调用的结果如果不是受限类型，那么是允许的
-        AssertThatShouldNotHaveError(source)
+        Dim snippet = "Dim arr As Integer() = {1, 2, 3, 4, 5}
+Dim query = From item In arr.AsSpan.ToArray Where item > 0 Select item
+Dim result = query.ToList()"
+        AssertThatCorrectInMethod(snippet)
     End Sub
 
     <TestMethod>
     Public Sub TestNormalLinqWithNormalTypes()
-        Dim source As FormattableString = $"
-Imports System
-Imports System.Linq
-
-Class TestClass
-    Sub TestMethod()
-        Dim numbers = {{1, 2, 3, 4, 5}}
-        Dim strings = {{""hello"", ""world""}}
-        Dim query = From n In numbers, s In strings Select New With {{.Number = n, .Text = s}}
-        Dim result = query.ToList()
-    End Sub
-End Class
-"
-        AssertThatShouldNotHaveError(source)
+        Dim snippet = "Dim numbers = {1, 2, 3, 4, 5}
+Dim strings = {""hello"", ""world""}
+Dim query = From n In numbers, s In strings Select New With {.Number = n, .Text = s}
+Dim result = query.ToList()"
+        AssertThatCorrectInMethod(snippet)
     End Sub
 
 End Class

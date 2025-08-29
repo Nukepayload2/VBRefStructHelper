@@ -158,11 +158,7 @@ End Structure
 
     <TestMethod>
     Public Sub TestNonRestrictedStruct()
-        Dim source As FormattableString = $"
-Imports System
-Imports System.Runtime.InteropServices
-
-Structure NormalStruct
+        Dim snippet = "Structure NormalStruct
     Public NormalField As Integer
 End Structure
 
@@ -170,7 +166,12 @@ Class TestClass
     Sub TestMethod()
         Dim normalStruct As New NormalStruct()
     End Sub
-End Class
+End Class"
+        Dim source As FormattableString = $"
+Imports System
+Imports System.Runtime.InteropServices
+
+{snippet}
 "
         AssertThatShouldNotHaveError(source)
     End Sub
@@ -475,26 +476,30 @@ End Class
         AssertThatShouldNotHaveError(source)
     End Sub
 
-    <TestMethod>
-    Public Sub TestRegularMembersRegression1()
+    Private Shared Sub AssertThatCorrectInClass(snippet As String)
         Dim source As FormattableString = $"
 Imports System
 Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
+{snippet}
+End Class
+"
+        AssertThatShouldNotHaveError(source)
+    End Sub
 
-    Private Class Something2
+    <TestMethod>
+    Public Sub TestRegularMembersRegression1()
+        Dim snippet = "Private Class Something2
         Sub New(arg As Span(Of Integer))
         End Sub
     End Class
 
     Sub CorrectUsages()
         Dim y2 = New Something2(span)
-    End Sub
-End Class
-"
-        AssertThatShouldNotHaveError(source)
+    End Sub"
+        AssertThatCorrectInClass(snippet)
     End Sub
 
 End Class

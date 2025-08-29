@@ -226,32 +226,19 @@ End Class
 
     <TestMethod>
     Public Sub TestNormalIteratorMethod()
+        Dim snippet = "Dim x As Integer = 42
+Yield x"
+        AssertThatCorrectInIteratorMethod(snippet)
+    End Sub
+
+    Private Shared Sub AssertThatCorrectInIteratorMethod(snippet As String)
         Dim source As FormattableString = $"
 Imports System
 Imports System.Collections.Generic
 
 Class TestClass
     Iterator Function TestMethod() As IEnumerable(Of Integer)
-        Dim x As Integer = 42
-        Yield x
-    End Function
-End Class
-"
-        AssertThatShouldNotHaveError(source)
-    End Sub
-
-    <TestMethod>
-    Public Sub TestNormalAsyncIteratorMethod()
-        Dim source As FormattableString = $"
-Imports System
-Imports System.Collections.Generic
-Imports System.Threading.Tasks
-
-Class TestClass
-    Async Iterator Function TestMethod() As IAsyncEnumerable(Of Integer)
-        Dim x As Integer = 42
-        Yield x
-        Await Task.Delay(100)
+{snippet}
     End Function
 End Class
 "

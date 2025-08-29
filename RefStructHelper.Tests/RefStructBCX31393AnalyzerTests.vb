@@ -91,22 +91,12 @@ End Class
 
     <TestMethod>
     Public Sub TestRegularMembers()
-        Dim source As FormattableString = $"
-Imports System
-Imports System.Runtime.InteropServices
-
-<Obsolete(""Suppress default ref struct obsolete errors"")>
-Class TestClass
-    Sub TestMethod()
-        Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim span As Span(Of Integer) = arr.AsSpan()
-        Dim allowString = span.ToString()
-        arr(0) = span.Length
-        Dim sliced = span.Slice(0,2)
-    End Sub
-End Class
-"
-        AssertThatShouldNotHaveError(source)
+        Dim snippet = "Dim arr As Integer() = {1, 2, 3, 4, 5}
+Dim span As Span(Of Integer) = arr.AsSpan()
+Dim allowString = span.ToString()
+arr(0) = span.Length
+Dim sliced = span.Slice(0,2)"
+        AssertThatCorrectInMethod(snippet)
     End Sub
 
     <TestMethod>
@@ -133,18 +123,10 @@ End Class
 
     <TestMethod>
     Public Sub TestNormalValueTypeUsage()
-        Dim source As FormattableString = $"
-Imports System
-
-Class TestClass
-    Sub TestMethod()
-        Dim value As Integer = 42
-        Dim str As String = value.ToString()
-        Dim hash As Integer = value.GetHashCode()
-    End Sub
-End Class
-"
-        AssertThatShouldNotHaveError(source)
+        Dim snippet = "Dim value As Integer = 42
+Dim str As String = value.ToString()
+Dim hash As Integer = value.GetHashCode()"
+        AssertThatCorrectInMethod(snippet)
     End Sub
 
 End Class
