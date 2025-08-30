@@ -14,7 +14,7 @@ Option Explicit On
 Imports System
 
 Namespace My.Resources
-
+    
     '此类是由 StronglyTypedResourceBuilder
     '类通过类似于 ResGen 或 Visual Studio 的工具自动生成的。
     '若要添加或移除成员，请编辑 .ResX 文件，然后重新运行 ResGen
@@ -22,20 +22,20 @@ Namespace My.Resources
     '''<summary>
     '''  一个强类型的资源类，用于查找本地化的字符串等。
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0"),
-     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),
-     Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),
-     Global.Microsoft.VisualBasic.HideModuleNameAttribute()>
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0"),  _
+     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+     Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
+     Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
     Friend Module Resources
-
+        
         Private resourceMan As Global.System.Resources.ResourceManager
-
+        
         Private resourceCulture As Global.System.Globalization.CultureInfo
-
+        
         '''<summary>
         '''  返回此类使用的缓存的 ResourceManager 实例。
         '''</summary>
-        <Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)>
+        <Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)>  _
         Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
@@ -45,30 +45,30 @@ Namespace My.Resources
                 Return resourceMan
             End Get
         End Property
-
+        
         '''<summary>
         '''  重写当前线程的 CurrentUICulture 属性，对
         '''  使用此强类型资源类的所有资源查找执行重写。
         '''</summary>
-        <Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)>
+        <Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)>  _
         Friend Property Culture() As Global.System.Globalization.CultureInfo
             Get
                 Return resourceCulture
             End Get
             Set
-                resourceCulture = Value
+                resourceCulture = value
             End Set
         End Property
-
+        
         '''<summary>
-        '''  查找类似 Restricted types cannot be used in lambda expressions due to closure capture limitations. 的本地化字符串。
+        '''  查找类似 Restricted types cannot be used in lambda expressions due to closure capture. 的本地化字符串。
         '''</summary>
         Friend ReadOnly Property DESC_CannotLiftRestrictedTypeLambda() As String
             Get
                 Return ResourceManager.GetString("DESC_CannotLiftRestrictedTypeLambda", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  查找类似 Restricted types cannot be used in LINQ query expressions as range variables or captured in closures. 的本地化字符串。
         '''</summary>
@@ -77,16 +77,16 @@ Namespace My.Resources
                 Return ResourceManager.GetString("DESC_CannotLiftRestrictedTypeQuery", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
-        '''  查找类似 Restricted types cannot be declared as local variables in Async or Iterator methods due to state machine limitations. 的本地化字符串。
+        '''  查找类似 Restricted types cannot be declared as local variables in Async or Iterator methods due to state machine closure capture. 的本地化字符串。
         '''</summary>
         Friend ReadOnly Property DESC_CannotLiftRestrictedTypeResumable1() As String
             Get
                 Return ResourceManager.GetString("DESC_CannotLiftRestrictedTypeResumable1", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  查找类似 Restricted types cannot be used as type constraints. 的本地化字符串。
         '''</summary>
@@ -95,7 +95,7 @@ Namespace My.Resources
                 Return ResourceManager.GetString("DESC_ConstraintIsRestrictedType1", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  查找类似 Restricted types cannot access members inherited from Object or ValueType due to boxing limitations. 的本地化字符串。
         '''</summary>
@@ -104,7 +104,7 @@ Namespace My.Resources
                 Return ResourceManager.GetString("DESC_RestrictedAccess", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  查找类似 Restricted types cannot be converted to Object or ValueType. 的本地化字符串。
         '''</summary>
@@ -113,7 +113,7 @@ Namespace My.Resources
                 Return ResourceManager.GetString("DESC_RestrictedConversion1", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  查找类似 Restricted types cannot be made nullable, used as array elements, fields, anonymous type members, type arguments, ByRef parameters, or return values. 的本地化字符串。
         '''</summary>
@@ -122,67 +122,130 @@ Namespace My.Resources
                 Return ResourceManager.GetString("DESC_RestrictedType1", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
-        '''  查找类似 Instance of restricted type &apos;{0}&apos; cannot be used in a lambda expression. 的本地化字符串。
+        '''  查找类似 Instance of restricted type &apos;{0}&apos; cannot be used in a lambda expression 的本地化字符串。
         '''</summary>
         Friend ReadOnly Property ERR_CannotLiftRestrictedTypeLambda() As String
             Get
                 Return ResourceManager.GetString("ERR_CannotLiftRestrictedTypeLambda", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
-        '''  查找类似 BC36598: Instance of restricted type &apos;{0}&apos; cannot be used in a query expression. 的本地化字符串。
+        '''  查找类似 BC36598: Instance of restricted type &apos;{0}&apos; cannot be used in a query expression 的本地化字符串。
         '''</summary>
         Friend ReadOnly Property ERR_CannotLiftRestrictedTypeQuery() As String
             Get
                 Return ResourceManager.GetString("ERR_CannotLiftRestrictedTypeQuery", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
-        '''  查找类似 Variable of restricted type &apos;{0}&apos; cannot be declared in an Async or Iterator method. 的本地化字符串。
+        '''  查找类似 Variable of restricted type &apos;{0}&apos; cannot be declared in an Async or Iterator method 的本地化字符串。
         '''</summary>
         Friend ReadOnly Property ERR_CannotLiftRestrictedTypeResumable1() As String
             Get
                 Return ResourceManager.GetString("ERR_CannotLiftRestrictedTypeResumable1", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
-        '''  查找类似 &apos;{0}&apos; cannot be used as a type constraint. 的本地化字符串。
+        '''  查找类似 &apos;{0}&apos; cannot be used as a type constraint 的本地化字符串。
         '''</summary>
         Friend ReadOnly Property ERR_ConstraintIsRestrictedType1() As String
             Get
                 Return ResourceManager.GetString("ERR_ConstraintIsRestrictedType1", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
-        '''  查找类似 Expression has the type &apos;{0}&apos; which is a restricted type and cannot be used to access members inherited from &apos;Object&apos; or &apos;ValueType&apos;. 的本地化字符串。
+        '''  查找类似 Expression has the type &apos;{0}&apos; which is a restricted type and cannot be used to access members inherited from &apos;Object&apos; or &apos;ValueType&apos; 的本地化字符串。
         '''</summary>
         Friend ReadOnly Property ERR_RestrictedAccess() As String
             Get
                 Return ResourceManager.GetString("ERR_RestrictedAccess", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
-        '''  查找类似 Expression of type &apos;{0}&apos; cannot be converted to &apos;Object&apos; or &apos;ValueType&apos;. 的本地化字符串。
+        '''  查找类似 Expression of type &apos;{0}&apos; cannot be converted to &apos;Object&apos; or &apos;ValueType&apos; 的本地化字符串。
         '''</summary>
         Friend ReadOnly Property ERR_RestrictedConversion1() As String
             Get
                 Return ResourceManager.GetString("ERR_RestrictedConversion1", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
-        '''  查找类似 {0} cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, &apos;ByRef&apos; parameter, or return statement. 的本地化字符串。
+        '''  查找类似 {0} cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, &apos;ByRef&apos; parameter, or return statement 的本地化字符串。
         '''</summary>
         Friend ReadOnly Property ERR_RestrictedType1() As String
             Get
                 Return ResourceManager.GetString("ERR_RestrictedType1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted Type in Lambda Expression 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property TITLE_CannotLiftRestrictedTypeLambda() As String
+            Get
+                Return ResourceManager.GetString("TITLE_CannotLiftRestrictedTypeLambda", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted Type in Query Expression 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property TITLE_CannotLiftRestrictedTypeQuery() As String
+            Get
+                Return ResourceManager.GetString("TITLE_CannotLiftRestrictedTypeQuery", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted Type in Async/Iterator Method 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property TITLE_CannotLiftRestrictedTypeResumable1() As String
+            Get
+                Return ResourceManager.GetString("TITLE_CannotLiftRestrictedTypeResumable1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted Type as Constraint 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property TITLE_ConstraintIsRestrictedType1() As String
+            Get
+                Return ResourceManager.GetString("TITLE_ConstraintIsRestrictedType1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted Type Member Access 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property TITLE_RestrictedAccess() As String
+            Get
+                Return ResourceManager.GetString("TITLE_RestrictedAccess", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted Type Conversion 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property TITLE_RestrictedConversion1() As String
+            Get
+                Return ResourceManager.GetString("TITLE_RestrictedConversion1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted Type Usage 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property TITLE_RestrictedType1() As String
+            Get
+                Return ResourceManager.GetString("TITLE_RestrictedType1", resourceCulture)
             End Get
         End Property
     End Module

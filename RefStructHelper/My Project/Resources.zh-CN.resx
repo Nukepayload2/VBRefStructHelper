@@ -117,26 +117,47 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="TITLE_RestrictedType1" xml:space="preserve">
+    <value>受限类型使用</value>
+  </data>
+  <data name="TITLE_ConstraintIsRestrictedType1" xml:space="preserve">
+    <value>受限类型作为约束</value>
+  </data>
+  <data name="TITLE_RestrictedConversion1" xml:space="preserve">
+    <value>受限类型转换</value>
+  </data>
+  <data name="TITLE_RestrictedAccess" xml:space="preserve">
+    <value>受限类型成员访问</value>
+  </data>
+  <data name="TITLE_CannotLiftRestrictedTypeQuery" xml:space="preserve">
+    <value>查询表达式中的受限类型</value>
+  </data>
+  <data name="TITLE_CannotLiftRestrictedTypeLambda" xml:space="preserve">
+    <value>Lambda 表达式中的受限类型</value>
+  </data>
+  <data name="TITLE_CannotLiftRestrictedTypeResumable1" xml:space="preserve">
+    <value>Async/Iterator 方法中的受限类型</value>
+  </data>
   <data name="ERR_RestrictedType1" xml:space="preserve">
-    <value>{0} 不能为可空类型，也不能用作数组元素、字段、匿名类型成员、类型参数、'ByRef' 参数或返回语句的数据类型。</value>
+    <value>{0} 不能为可空类型，也不能用作数组元素、字段、匿名类型成员、类型参数、'ByRef' 参数或返回语句的数据类型</value>
   </data>
   <data name="ERR_ConstraintIsRestrictedType1" xml:space="preserve">
-    <value>'{0}' 不能用作类型约束。</value>
+    <value>'{0}' 不能用作类型约束</value>
   </data>
   <data name="ERR_CannotLiftRestrictedTypeQuery" xml:space="preserve">
-    <value>不能在查询表达式中捕获受限类型 '{0}' 的实例。</value>
+    <value>不能在查询表达式中捕获受限类型 '{0}' 的实例</value>
   </data>
   <data name="ERR_CannotLiftRestrictedTypeLambda" xml:space="preserve">
-    <value>不能在 Lambda 表达式中捕获受限类型 '{0}' 的实例。</value>
+    <value>不能在 Lambda 表达式中捕获受限类型 '{0}' 的实例</value>
   </data>
   <data name="ERR_CannotLiftRestrictedTypeResumable1" xml:space="preserve">
-    <value>不能在 Async 或 Iterator 方法中声明受限类型 '{0}' 的变量。</value>
+    <value>不能在 Async 或 Iterator 方法中声明受限类型 '{0}' 的变量</value>
   </data>
   <data name="ERR_RestrictedAccess" xml:space="preserve">
-    <value>表达式的类型为 '{0}'，这是一个受限类型，不能用于访问从 'Object' 或 'ValueType' 继承的成员。</value>
+    <value>表达式的类型为 '{0}'，这是一个受限类型，不能用于访问从 'Object' 或 'ValueType' 继承的成员</value>
   </data>
   <data name="ERR_RestrictedConversion1" xml:space="preserve">
-    <value>无法将类型为“{0}”的表达式转换为“Object”或“ValueType”。</value>
+    <value>无法将类型为"{0}"的表达式转换为"Object"或"ValueType"</value>
   </data>
   <data name="DESC_RestrictedConversion1" xml:space="preserve">
     <value>受限类型无法转换为 Object 或 ValueType。</value>
@@ -148,15 +169,15 @@
     <value>受限类型不能用作类型约束。</value>
   </data>
   <data name="DESC_CannotLiftRestrictedTypeQuery" xml:space="preserve">
-    <value>不能在查询表达式中捕获受限类型的实例。</value>
+    <value>不能在查询表达式中捕获或声明受限类型的实例。</value>
   </data>
   <data name="DESC_CannotLiftRestrictedTypeLambda" xml:space="preserve">
     <value>不能在 Lambda 表达式中捕获受限类型的实例。</value>
   </data>
   <data name="DESC_CannotLiftRestrictedTypeResumable1" xml:space="preserve">
-    <value>不能在 Async 或 Iterator 方法中声明受限类型的变量。</value>
+    <value>不能在 Async 或 Iterator 方法中声明受限类型的变量，因为会被闭包捕获。</value>
   </data>
   <data name="DESC_RestrictedAccess" xml:space="preserve">
-    <value>表达式的类型为，这是一个受限类型，不能用于访问从“Object”或“ValueType”继承的成员。</value>
+    <value>表达式的类型为受限类型，不能用于访问从"Object"或"ValueType"继承的成员。</value>
   </data>
 </root>

@@ -15,7 +15,7 @@ Public Class RefStructBCX31393Analyzer
     Public Const DiagnosticId = "BCX31393"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As New LocalizableResourceString(NameOf(My.Resources.ERR_RestrictedAccess), My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly Title As New LocalizableResourceString(NameOf(My.Resources.TITLE_RestrictedAccess), My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Shared ReadOnly MessageFormat As New LocalizableResourceString(NameOf(My.Resources.ERR_RestrictedAccess), My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Shared ReadOnly Description As New LocalizableResourceString(NameOf(My.Resources.DESC_RestrictedAccess), My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Const Category As String = "Type Safety"
