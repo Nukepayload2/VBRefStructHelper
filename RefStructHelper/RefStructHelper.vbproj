@@ -5,10 +5,48 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <OptionStrict>On</OptionStrict>
+    <AssemblyName>Nukepayload2.CodeAnalysis.ExtendRestrictedTypes</AssemblyName>
+    
+    <!-- NuGet Package Properties -->
+    <PackageVersion>1.0.0-beta</PackageVersion>
+    <Authors>Nukepayload2</Authors>
+    <Company>Nukepayload2</Company>
+    <Product>VB.NET Ref Struct Helper</Product>
+    <Description>Roslyn analyzers for VB.NET ref struct (ByRef-like struct) boxing detection and prevention. Helps identify and prevent accidental boxing of ref structs that should remain on the stack.</Description>
+    <Copyright>Copyright © Nukepayload2 2025</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Nukepayload2/VBRefStructHelper</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Nukepayload2/VBRefStructHelper</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>roslyn analyzer vbnet ref-struct byref-like code-analysis</PackageTags>
+    <PackageReleaseNotes>Initial beta release with comprehensive ref struct boxing detection for VB.NET.</PackageReleaseNotes>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.13.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="My Project\Resources.Designer.vb">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- Package Analyzer DLLs -->
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/vb" Visible="false" />
   </ItemGroup>
 
 </Project>

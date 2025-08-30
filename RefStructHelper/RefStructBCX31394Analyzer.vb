@@ -15,9 +15,9 @@ Public Class RefStructBCX31394Analyzer
     Public Const DiagnosticId = "BCX31394"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As LocalizableString = "Restricted type cannot be converted to Object"
-    Private Shared ReadOnly MessageFormat As LocalizableString = "Expression of type '{0}' cannot be converted to 'Object' or 'ValueType'"
-    Private Shared ReadOnly Description As LocalizableString = "Restricted types cannot be converted to Object or ValueType."
+    Private Shared ReadOnly Title As New LocalizableResourceString("ERR_RestrictedConversion1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly MessageFormat As New LocalizableResourceString("ERR_RestrictedConversion1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly Description As New LocalizableResourceString("DESC_RestrictedConversion1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Const Category As String = "Type Safety"
 
     Private Shared ReadOnly Rule As New DiagnosticDescriptor(
@@ -239,9 +239,14 @@ Public Class RefStructBCX31394Analyzer
                                           node As SyntaxNode,
                                           context As SyntaxNodeAnalysisContext,
                                           <CallerMemberName> Optional callerName As String = Nothing)
-        ' Check if this is a restricted type being converted to Object or ValueType
+        ' Early exit conditions to improve performance
         If expressionType Is Nothing OrElse targetType Is Nothing Then Return
-        If IsRestrictedType(expressionType) AndAlso IsReferenceType(targetType) Then
+
+        ' Early exit if target is not a reference type - no need to check restricted type
+        If Not IsReferenceType(targetType) Then Return
+
+        ' Check if this is a restricted type being converted to Object or ValueType
+        If IsRestrictedType(expressionType) Then
             Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, node.GetLocation(), expressionType.Name)
             context.ReportDiagnostic(diagnostic)
         End If

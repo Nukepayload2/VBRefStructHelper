@@ -15,8 +15,8 @@ Public Class RefStructBCX37052Analyzer
     Public Const DiagnosticId = "BCX37052"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As LocalizableString = "Variable of restricted type cannot be declared in an Async or Iterator method"
-    Private Shared ReadOnly MessageFormat As LocalizableString = "Variable of restricted type '{0}' cannot be declared in an Async or Iterator method"
+    Private Shared ReadOnly Title As New LocalizableResourceString("ERR_CannotLiftRestrictedTypeResumable1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly MessageFormat As New LocalizableResourceString("ERR_CannotLiftRestrictedTypeResumable1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Shared ReadOnly Description As LocalizableString = "Restricted types cannot be declared as local variables in Async or Iterator methods due to state machine limitations."
     Private Const Category As String = "Type Safety"
 

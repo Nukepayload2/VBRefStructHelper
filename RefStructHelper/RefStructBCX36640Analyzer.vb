@@ -15,8 +15,8 @@ Public Class RefStructBCX36640Analyzer
     Public Const DiagnosticId = "BCX36640"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As LocalizableString = "Instance of restricted type cannot be used in a lambda expression"
-    Private Shared ReadOnly MessageFormat As LocalizableString = "Instance of restricted type '{0}' cannot be used in a lambda expression"
+    Private Shared ReadOnly Title As New LocalizableResourceString("ERR_CannotLiftRestrictedTypeLambda", My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly MessageFormat As New LocalizableResourceString("ERR_CannotLiftRestrictedTypeLambda", My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Shared ReadOnly Description As LocalizableString = "Restricted types cannot be used in lambda expressions due to closure capture limitations."
     Private Const Category As String = "Type Safety"
 
@@ -73,7 +73,7 @@ Public Class RefStructBCX36640Analyzer
             Dim symbolType As ITypeSymbol = Nothing
             Dim isClosureCapture As Boolean = False
 
-            ' Check if this is a closure capture (variable from outside the lambda)
+            ' Early exit if symbol type is already known to be non-restricted
             Select Case symbolInfo.Symbol.Kind
                 Case SymbolKind.Field
                     symbolType = DirectCast(symbolInfo.Symbol, IFieldSymbol).Type
@@ -98,6 +98,7 @@ Public Class RefStructBCX36640Analyzer
                     isClosureCapture = IsFromOuterScope(symbolInfo.Symbol, lambdaNode, semanticModel)
             End Select
 
+            ' Early exit conditions for better performance
             If isClosureCapture AndAlso symbolType IsNot Nothing AndAlso IsRestrictedType(symbolType) Then
                 ReportDiagnostic(context, identifier, symbolType)
             End If

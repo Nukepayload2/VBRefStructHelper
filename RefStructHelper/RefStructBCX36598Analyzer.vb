@@ -15,8 +15,8 @@ Public Class RefStructBCX36598Analyzer
     Public Const DiagnosticId = "BCX36598"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As LocalizableString = "Instance of restricted type cannot be used in a query expression"
-    Private Shared ReadOnly MessageFormat As LocalizableString = "Instance of restricted type '{0}' cannot be used in a query expression"
+    Private Shared ReadOnly Title As New LocalizableResourceString("ERR_CannotLiftRestrictedTypeQuery", My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly MessageFormat As New LocalizableResourceString("ERR_CannotLiftRestrictedTypeQuery", My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Shared ReadOnly Description As LocalizableString = "Restricted types cannot be used in LINQ query expressions as range variables or captured in closures."
     Private Const Category As String = "Type Safety"
 
@@ -44,7 +44,7 @@ Public Class RefStructBCX36598Analyzer
     Private Sub CheckExpressionForRestrictedTypes(expression As ExpressionSyntax, context As SyntaxNodeAnalysisContext,
                                                                                                   semanticModel As SemanticModel, cancellationToken As CancellationToken)
 
-        ' Only check the current expression, not its descendants
+        ' Early exit for better performance - only check specific node types
         Select Case expression.Kind()
             Case SyntaxKind.IdentifierName
                 CheckIdentifierForRestrictedType(DirectCast(expression, IdentifierNameSyntax), context, semanticModel, cancellationToken)
@@ -54,13 +54,6 @@ Public Class RefStructBCX36598Analyzer
 
             Case SyntaxKind.InvocationExpression
                 CheckInvocationForRestrictedType(DirectCast(expression, InvocationExpressionSyntax), context, semanticModel, cancellationToken)
-
-            Case Else
-                ' For other expression types, check if the expression itself returns a restricted type
-                Dim exprType = semanticModel.GetTypeInfo(expression, cancellationToken).Type
-                If exprType IsNot Nothing AndAlso IsRestrictedType(exprType) Then
-                    ReportDiagnostic(context, expression, exprType)
-                End If
         End Select
     End Sub
 

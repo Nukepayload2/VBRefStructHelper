@@ -18,9 +18,15 @@ Module SymbolHelper
         If typeSymbol Is Nothing Then Return False
 
         ' Check cache first to improve performance
-        Dim cachedValue As StrongBox(Of Boolean)
-        If _restrictedTypeCache.TryGetValue(typeSymbol, cachedValue) Then
+        Dim cachedValue As StrongBox(Of Boolean) = Nothing
+        If _restrictedTypeCache.TryGetValue(typeSymbol, cachedValue) AndAlso cachedValue IsNot Nothing Then
             Return cachedValue.Value
+        End If
+
+        ' Early exit for common non-restricted types
+        If typeSymbol.SpecialType <> SpecialType.None Then
+            _restrictedTypeCache.GetOrCreateValue(typeSymbol).Value = False
+            Return False
         End If
 
         ' Check if the type has System.Runtime.CompilerServices.IsByRefLikeAttribute

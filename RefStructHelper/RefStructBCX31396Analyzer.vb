@@ -15,9 +15,9 @@ Public Class RefStructBCX31396Analyzer
     Public Const DiagnosticId = "BCX31396"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As LocalizableString = "Restricted type cannot be used in this context"
-    Private Shared ReadOnly MessageFormat As LocalizableString = "'{0}' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement"
-    Private Shared ReadOnly Description As LocalizableString = "Restricted types cannot be made nullable, used as array elements, fields, anonymous type members, type arguments, ByRef parameters, or return values."
+    Private Shared ReadOnly Title As New LocalizableResourceString("ERR_RestrictedType1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly MessageFormat As New LocalizableResourceString("ERR_RestrictedType1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly Description As New LocalizableResourceString("DESC_RestrictedType1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Const Category As String = "Type Safety"
 
     Private Shared ReadOnly Rule As New DiagnosticDescriptor(
