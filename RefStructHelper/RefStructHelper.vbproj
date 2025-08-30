@@ -12,7 +12,7 @@
     <Authors>Nukepayload2</Authors>
     <Company>Nukepayload2</Company>
     <Product>VB.NET Ref Struct Helper</Product>
-    <Description>Roslyn analyzers for VB.NET ref struct (ByRef-like struct) boxing detection and prevention. Helps identify and prevent accidental boxing of ref structs that should remain on the stack.</Description>
+    <Description>Roslyn analyzers for VB.NET ref struct (ByRef-like struct) boxing detection and prevention. Helps identify and prevent accidental boxing of ref structs that should remain on the stack. Requires Visual Basic 17.13 or later.</Description>
     <Copyright>Copyright © Nukepayload2 2025</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Nukepayload2/VBRefStructHelper</PackageProjectUrl>
@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.13.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.13.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,9 +44,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <!-- Package Analyzer DLLs -->
+  <!-- Package -->
   <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/vb" Visible="false" />
+    <None Include="..\README.md" Pack="True" PackagePath="readme.md"/>
   </ItemGroup>
 
 </Project>
