@@ -15,8 +15,8 @@ Public Class RefStructBCX36640Analyzer
     Public Const DiagnosticId = "BCX36640"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As New LocalizableResourceString("ERR_CannotLiftRestrictedTypeLambda", My.Resources.ResourceManager, GetType(My.Resources.Resources))
-    Private Shared ReadOnly MessageFormat As New LocalizableResourceString("ERR_CannotLiftRestrictedTypeLambda", My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly Title As New LocalizableResourceString(NameOf(My.Resources.ERR_CannotLiftRestrictedTypeLambda), My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly MessageFormat As New LocalizableResourceString(NameOf(My.Resources.ERR_CannotLiftRestrictedTypeLambda), My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Shared ReadOnly Description As LocalizableString = "Restricted types cannot be used in lambda expressions due to closure capture limitations."
     Private Const Category As String = "Type Safety"
 

@@ -15,9 +15,9 @@ Public Class RefStructBCX31394Analyzer
     Public Const DiagnosticId = "BCX31394"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As New LocalizableResourceString("ERR_RestrictedConversion1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
-    Private Shared ReadOnly MessageFormat As New LocalizableResourceString("ERR_RestrictedConversion1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
-    Private Shared ReadOnly Description As New LocalizableResourceString("DESC_RestrictedConversion1", My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly Title As New LocalizableResourceString(NameOf(My.Resources.ERR_RestrictedConversion1), My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly MessageFormat As New LocalizableResourceString(NameOf(My.Resources.ERR_RestrictedConversion1), My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly Description As New LocalizableResourceString(NameOf(My.Resources.DESC_RestrictedConversion1), My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Const Category As String = "Type Safety"
 
     Private Shared ReadOnly Rule As New DiagnosticDescriptor(

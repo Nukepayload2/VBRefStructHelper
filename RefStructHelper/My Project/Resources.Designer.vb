@@ -61,6 +61,69 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  查找类似 Restricted types cannot be used in lambda expressions due to closure capture limitations. 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property DESC_CannotLiftRestrictedTypeLambda() As String
+            Get
+                Return ResourceManager.GetString("DESC_CannotLiftRestrictedTypeLambda", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted types cannot be used in LINQ query expressions as range variables or captured in closures. 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property DESC_CannotLiftRestrictedTypeQuery() As String
+            Get
+                Return ResourceManager.GetString("DESC_CannotLiftRestrictedTypeQuery", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted types cannot be declared as local variables in Async or Iterator methods due to state machine limitations. 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property DESC_CannotLiftRestrictedTypeResumable1() As String
+            Get
+                Return ResourceManager.GetString("DESC_CannotLiftRestrictedTypeResumable1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted types cannot be used as type constraints. 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property DESC_ConstraintIsRestrictedType1() As String
+            Get
+                Return ResourceManager.GetString("DESC_ConstraintIsRestrictedType1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted types cannot access members inherited from Object or ValueType due to boxing limitations. 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property DESC_RestrictedAccess() As String
+            Get
+                Return ResourceManager.GetString("DESC_RestrictedAccess", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted types cannot be converted to Object or ValueType. 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property DESC_RestrictedConversion1() As String
+            Get
+                Return ResourceManager.GetString("DESC_RestrictedConversion1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查找类似 Restricted types cannot be made nullable, used as array elements, fields, anonymous type members, type arguments, ByRef parameters, or return values. 的本地化字符串。
+        '''</summary>
+        Friend ReadOnly Property DESC_RestrictedType1() As String
+            Get
+                Return ResourceManager.GetString("DESC_RestrictedType1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  查找类似 Instance of restricted type &apos;{0}&apos; cannot be used in a lambda expression. 的本地化字符串。
         '''</summary>
         Friend ReadOnly Property ERR_CannotLiftRestrictedTypeLambda() As String

@@ -148,15 +148,15 @@
     <value>受限类型不能用作类型约束。</value>
   </data>
   <data name="DESC_CannotLiftRestrictedTypeQuery" xml:space="preserve">
-    <value>不能在查询表达式中捕获受限类型“{0}”的实例。</value>
+    <value>不能在查询表达式中捕获受限类型的实例。</value>
   </data>
   <data name="DESC_CannotLiftRestrictedTypeLambda" xml:space="preserve">
-    <value>不能在 Lambda 表达式中捕获受限类型“{0}”的实例。</value>
+    <value>不能在 Lambda 表达式中捕获受限类型的实例。</value>
   </data>
   <data name="DESC_CannotLiftRestrictedTypeResumable1" xml:space="preserve">
-    <value>不能在 Async 或 Iterator 方法中声明受限类型“{0}”的变量。</value>
+    <value>不能在 Async 或 Iterator 方法中声明受限类型的变量。</value>
   </data>
   <data name="DESC_RestrictedAccess" xml:space="preserve">
-    <value>表达式的类型为“{0}”，这是一个受限类型，不能用于访问从“Object”或“ValueType”继承的成员。</value>
+    <value>表达式的类型为，这是一个受限类型，不能用于访问从“Object”或“ValueType”继承的成员。</value>
   </data>
 </root>

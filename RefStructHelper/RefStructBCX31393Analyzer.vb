@@ -15,8 +15,8 @@ Public Class RefStructBCX31393Analyzer
     Public Const DiagnosticId = "BCX31393"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As New LocalizableResourceString("ERR_RestrictedAccess", My.Resources.ResourceManager, GetType(My.Resources.Resources))
-    Private Shared ReadOnly MessageFormat As New LocalizableResourceString("ERR_RestrictedAccess", My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly Title As New LocalizableResourceString(NameOf(My.Resources.ERR_RestrictedAccess), My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly MessageFormat As New LocalizableResourceString(NameOf(My.Resources.ERR_RestrictedAccess), My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Shared ReadOnly Description As LocalizableString = "Restricted types cannot access members inherited from Object or ValueType due to boxing limitations."
     Private Const Category As String = "Type Safety"
 
