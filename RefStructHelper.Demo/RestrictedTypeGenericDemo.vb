@@ -15,13 +15,6 @@ Public Class RestrictedTypeGenericDemo
         Dim dict3 = New Dictionary(Of String, Span(Of Integer))  ' 这应该触发 BCX32061
     End Sub
 
-    ' 泛型约束错误
-    Sub TestMethod(Of T As Span(Of Integer))()  ' 这应该触发 BCX32061
-    End Sub
-
-    Sub TestMethod2(Of T As {Span(Of Integer), IDisposable})()  ' 这应该触发 BCX32061
-    End Sub
-
     ' Inherits声明错误
     Private Class Wrong
         Inherits List(Of Span(Of Integer))  ' 这应该触发 BCX32061
