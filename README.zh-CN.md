@@ -44,14 +44,17 @@ RefStructHelper.Tests/           # 测试项目
 ### 要求
 - 支持 Visual Basic 17.13 或更高版本的 .NET SDK
 
-### 配置
+### 通过 NuGet 包管理器安装
+[![NuGet](https://img.shields.io/nuget/v/Nukepayload2.CodeAnalysis.ExtendRestrictedTypes.svg)](https://www.nuget.org/packages/Nukepayload2.CodeAnalysis.ExtendRestrictedTypes/)
+
+### 通过源码引用
 
 在目标项目的 `.vbproj` 文件中添加以下配置来启用分析器：
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\RefStructHelper\RefStructHelper.vbproj" 
+    <ProjectReference Include="Path to RefStructHelper.vbproj" 
                       OutputItemType="Analyzer" 
                       ReferenceOutputAssembly="false" />
   </ItemGroup>

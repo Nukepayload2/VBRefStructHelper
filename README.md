@@ -44,7 +44,10 @@ RefStructHelper.Tests/           # Test project
 ### Requirements
 - .NET SDK that supports Visual Basic 17.13 or later
 
-### Configuration
+### Via NuGet Package Manager
+[![NuGet](https://img.shields.io/nuget/v/Nukepayload2.CodeAnalysis.ExtendRestrictedTypes.svg)](https://www.nuget.org/packages/Nukepayload2.CodeAnalysis.ExtendRestrictedTypes/)
+
+### Via Project Reference
 
 Add the following configuration to the target project's `.vbproj` file to enable the analyzer:
 
