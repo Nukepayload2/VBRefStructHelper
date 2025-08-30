@@ -8,7 +8,7 @@
     <AssemblyName>Nukepayload2.CodeAnalysis.ExtendRestrictedTypes</AssemblyName>
     
     <!-- NuGet Package Properties -->
-    <PackageVersion>1.0.0-beta</PackageVersion>
+    <PackageVersion>1.0.1-beta</PackageVersion>
     <Authors>Nukepayload2</Authors>
     <Company>Nukepayload2</Company>
     <Product>VB.NET Ref Struct Helper</Product>
