@@ -15,9 +15,9 @@ Public Class RefStructBCX36598Analyzer
     Public Const DiagnosticId = "BCX36598"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As New LocalizableResourceString(NameOf(My.Resources.ERR_CannotLiftRestrictedTypeQuery), My.Resources.ResourceManager, GetType(My.Resources.Resources))
-    Private Shared ReadOnly MessageFormat As New LocalizableResourceString(NameOf(My.Resources.ERR_CannotLiftRestrictedTypeQuery), My.Resources.ResourceManager, GetType(My.Resources.Resources))
-    Private Shared ReadOnly Description As LocalizableString = "Restricted types cannot be used in LINQ query expressions as range variables or captured in closures."
+    Private Shared ReadOnly Title As New LocalizableResourceString(NameOf(My.Resources.ERR_ConstraintIsRestrictedType1), My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly MessageFormat As New LocalizableResourceString(NameOf(My.Resources.ERR_ConstraintIsRestrictedType1), My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly Description As New LocalizableResourceString(NameOf(My.Resources.DESC_ConstraintIsRestrictedType1), My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Const Category As String = "Type Safety"
 
     Private Shared ReadOnly Rule As New DiagnosticDescriptor(

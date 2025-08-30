@@ -15,9 +15,9 @@ Public Class RefStructBCX37052Analyzer
     Public Const DiagnosticId = "BCX37052"
 
     ' You can change these strings in the Resources.resx file.
-    Private Shared ReadOnly Title As New LocalizableResourceString(NameOf(My.Resources.ERR_CannotLiftRestrictedTypeResumable1), My.Resources.ResourceManager, GetType(My.Resources.Resources))
-    Private Shared ReadOnly MessageFormat As New LocalizableResourceString(NameOf(My.Resources.ERR_CannotLiftRestrictedTypeResumable1), My.Resources.ResourceManager, GetType(My.Resources.Resources))
-    Private Shared ReadOnly Description As LocalizableString = "Restricted types cannot be declared as local variables in Async or Iterator methods due to state machine limitations."
+    Private Shared ReadOnly Title As New LocalizableResourceString(NameOf(My.Resources.ERR_CannotLiftRestrictedTypeLambda), My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly MessageFormat As New LocalizableResourceString(NameOf(My.Resources.ERR_CannotLiftRestrictedTypeLambda), My.Resources.ResourceManager, GetType(My.Resources.Resources))
+    Private Shared ReadOnly Description As New LocalizableResourceString(NameOf(My.Resources.DESC_CannotLiftRestrictedTypeLambda), My.Resources.ResourceManager, GetType(My.Resources.Resources))
     Private Const Category As String = "Type Safety"
 
     Private Shared ReadOnly Rule As New DiagnosticDescriptor(
