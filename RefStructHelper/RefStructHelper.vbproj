@@ -22,6 +22,7 @@
     <PackageReleaseNotes>Initial beta release with comprehensive ref struct boxing detection for VB.NET.</PackageReleaseNotes>
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
