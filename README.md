@@ -3,7 +3,7 @@
 [中文介绍](https://github.com/Nukepayload2/VBRefStructHelper/blob/master/README.zh-CN.md)
 
 This is a .NET analyzer project designed to extend the concept of restricted types to all `ref struct`s in Visual Basic. 
-This analyzer detects various operations that could [InvalidProgramException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidprogramexception) when using restricted types.
+This analyzer detects various operations that could throw [InvalidProgramException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidprogramexception) when using restricted types.
 
 ## What are Restricted Types?
 
