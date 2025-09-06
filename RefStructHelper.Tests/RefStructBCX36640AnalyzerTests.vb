@@ -5,13 +5,13 @@ Public Class RefStructBCX36640AnalyzerTests
 
     Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX36640"), $"应该检测到 BCX36640 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX36640"), $"Should detect BCX36640 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX36640"), $"不应该检测到 BCX36640 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX36640"), $"Should not detect BCX36640 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
@@ -33,7 +33,7 @@ End Class
     End Sub
 
     ' ====================
-    ' Lambda 表达式中捕获受限类型测试
+    ' Capture restricted types in Lambda expressions test
     ' ====================
 
     <TestMethod>
@@ -97,7 +97,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 多行 Lambda 表达式中捕获受限类型测试
+    ' Capture restricted types in multi-line Lambda expressions test
     ' ====================
 
     <TestMethod>
@@ -144,7 +144,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 多行 Lambda 内部正常定义本地 Span 变量测试
+    ' Normal local Span variable declaration inside multi-line Lambda test
     ' ====================
 
     <TestMethod>
@@ -233,7 +233,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 多层 Lambda 嵌套测试
+    ' Multi-layer Lambda nesting test
     ' ====================
 
     <TestMethod>
@@ -249,7 +249,7 @@ End Class
     End Sub
 
     ' ====================
-    ' Async Lambda 测试
+    ' Async Lambda test
     ' ====================
 
     <TestMethod>
@@ -259,7 +259,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 正确用法测试
+    ' Correct usage test
     ' ====================
 
     <TestMethod>

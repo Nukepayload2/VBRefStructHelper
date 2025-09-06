@@ -5,13 +5,13 @@ Public Class RefStructBCX31393AnalyzerTests
 
     Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31393"), $"应该检测到 BCX31393 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31393"), $"Should detect BCX31393 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31393"), $"不应该检测到 BCX31393 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31393"), $"Should not detect BCX31393 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
@@ -38,7 +38,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 调用受限类型继承的 Object 方法测试
+    ' Call inherited Object methods on restricted types test
     ' ====================
 
     <TestMethod>
@@ -66,7 +66,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 调用受限类型继承的 ValueType 方法测试
+    ' Call inherited ValueType methods on restricted types test
     ' ====================
 
     <TestMethod>
@@ -76,7 +76,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 字符串插值测试
+    ' String interpolation test
     ' ====================
 
     <TestMethod>
@@ -86,7 +86,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 正确用法测试
+    ' Correct usage test
     ' ====================
 
     <TestMethod>

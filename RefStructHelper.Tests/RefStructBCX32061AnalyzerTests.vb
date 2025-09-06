@@ -5,13 +5,13 @@ Public Class RefStructBCX32061AnalyzerTests
 
     Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX32061"), $"应该检测到 BCX32061 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX32061"), $"Should detect BCX32061 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX32061"), $"不应该检测到 BCX32061 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX32061"), $"Should not detect BCX32061 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
@@ -46,7 +46,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 泛型类型参数测试
+    ' Generic type parameter test
     ' ====================
 
     <TestMethod>
@@ -118,7 +118,7 @@ End Function"
     End Sub
 
     ' ====================
-    ' 泛型约束测试
+    ' Generic constraint test
     ' ====================
 
     <TestMethod>
@@ -152,7 +152,7 @@ End Class
     End Sub
 
     ' ====================
-    ' Inherits 声明签名测试
+    ' Inherits clause signature test
     ' ====================
 
     <TestMethod>
@@ -168,7 +168,7 @@ End Class
     End Sub
 
     ' ====================
-    ' Implements 声明签名测试
+    ' Implements clause signature test
     ' ====================
 
     <TestMethod>
@@ -184,7 +184,7 @@ End Class
     End Sub
 
     ' ====================
-    ' Event 声明测试
+    ' Event declaration test
     ' ====================
 
     <TestMethod>
@@ -206,7 +206,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 字段声明测试
+    ' Field declaration test
     ' ====================
 
     <TestMethod>
@@ -228,7 +228,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 属性声明测试
+    ' Property declaration test
     ' ====================
 
     <TestMethod>
@@ -262,7 +262,7 @@ End Class
     End Sub
 
     ' ====================
-    ' Sub 参数/返回值测试
+    ' Sub parameter/return value test
     ' ====================
 
     <TestMethod>
@@ -284,7 +284,7 @@ End Class
     End Sub
 
     ' ====================
-    ' Function 参数/返回值测试
+    ' Function parameter/return value test
     ' ====================
 
     <TestMethod>
@@ -318,7 +318,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 委托声明测试
+    ' Delegate declaration test
     ' ====================
 
     <TestMethod>
@@ -340,7 +340,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 受限类型的结构体中泛型参数测试
+    ' Generic parameters in restricted type structs test
     ' ====================
 
     <TestMethod>
@@ -407,7 +407,7 @@ End Structure
     End Sub
 
     ' ====================
-    ' 正确用法测试
+    ' Correct usage test
     ' ====================
 
     <TestMethod>

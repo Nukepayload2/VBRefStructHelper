@@ -5,13 +5,13 @@ Public Class RefStructBCX36598AnalyzerTests
 
     Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX36598"), $"应该检测到 BCX36598 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX36598"), $"Should detect BCX36598 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX36598"), $"不应该检测到 BCX36598 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX36598"), $"Should not detect BCX36598 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
@@ -34,7 +34,7 @@ End Class
     End Sub
 
     ' ====================
-    ' LINQ 查询中使用受限类型测试: 把 span 捕获到闭包里都算
+    ' Restricted type usage in LINQ queries test: Capturing span in closures counts
     ' ====================
 
     <TestMethod>
@@ -62,7 +62,7 @@ End Class
     End Sub
 
     ' ====================
-    ' LINQ 范围变量声明测试: 把 span 声明成范围变量都算
+    ' LINQ range variable declaration test: Declaring span as range variables counts
     ' ====================
 
     <TestMethod>
@@ -96,7 +96,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 正确用法测试
+    ' Correct usage test
     ' ====================
 
     <TestMethod>

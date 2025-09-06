@@ -5,13 +5,13 @@ Public Class RefStructBCX31394AnalyzerTests
 
     Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"应该检测到 BCX31394 诊断。语法树内容: {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31394"), $"Should detect BCX31394 diagnostic. Syntax tree content: {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31394"), $"不应该检测到 BCX31394 诊断。语法树内容: {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31394"), $"Should not detect BCX31394 diagnostic. Syntax tree content: {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
@@ -23,14 +23,14 @@ Imports System.Runtime.InteropServices
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
 
-    ' 辅助方法
+    ' Helper method
     Sub TestMethodTakingObject(obj As Object)
-        ' 这个方法用于测试参数传递场景
+        ' This method is used to test parameter passing scenarios
     End Sub
 
-    ' 辅助方法
+    ' Helper method
     Sub TestMethodTakingValueType(obj As ValueType)
-        ' 这个方法用于测试参数传递场景
+        ' This method is used to test parameter passing scenarios
     End Sub
 
     Private Class Something
@@ -59,90 +59,90 @@ End Class
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 使用 CType 转换 Span 到 Object
+    ' Use CType to convert Span to Object
     <TestMethod>
     Public Sub TestCTypeSpanToObject()
         Dim snippetContent = "Dim obj As Object = CType(span, Object)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 使用 DirectCast 转换 Span 到 Object
+    ' Use DirectCast to convert Span to Object
     <TestMethod>
     Public Sub TestDirectCastSpanToObject()
         Dim snippetContent = "Dim obj As Object = DirectCast(span, Object)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    <TestMethod, Ignore("与 Option Strict 重叠了，不用实现")>
+    <TestMethod, Ignore("Overlaps with Option Strict, no need to implement")>
     Public Sub TestRestrictedTypeEqualsOperatorObject()
         Dim snippetContent = "Dim wrong = span = CObj(0)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 使用等号运算符把 span 与 ValueType 比较
-    <TestMethod, Ignore("与 Option Strict 重叠了，不用实现")>
+    ' Use equals operator to compare span with ValueType
+    <TestMethod, Ignore("Overlaps with Option Strict, no need to implement")>
     Public Sub TestRestrictedTypeEqualsOperatorValueType()
         Dim snippetContent = "Dim wrong = span = CType(Nothing, ValueType)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 赋值给 ValueType 变量
+    ' Assign Span to ValueType variable
     <TestMethod>
     Public Sub TestSpanToValueTypeAssignment()
         Dim snippetContent = "Dim valueType As ValueType = span"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 使用 CType 转换 Span 到 ValueType
+    ' Use CType to convert Span to ValueType
     <TestMethod>
     Public Sub TestCTypeSpanToValueType()
         Dim snippetContent = "Dim valueType As ValueType = CType(span, ValueType)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 使用 CObj 转换 Span 到 Object
+    ' Use CObj to convert Span to Object
     <TestMethod>
     Public Sub TestCObjSpanToObject()
         Dim snippetContent = "Dim obj = CObj(span)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 使用 TryCast 转换 Span 到 Object
+    ' Use TryCast to convert Span to Object
     <TestMethod>
     Public Sub TestTryCastSpanToObject()
         Dim snippetContent = "Dim obj As Object = TryCast(span, Object)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 使用 TryCast 转换 Span 到 ValueType
+    ' Use TryCast to convert Span to ValueType
     <TestMethod>
     Public Sub TestTryCastSpanToValueType()
         Dim snippetContent = "Dim valueType As ValueType = TryCast(span, ValueType)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 使用 DirectCast 转换 Span 到 ValueType
+    ' Use DirectCast to convert Span to ValueType
     <TestMethod>
     Public Sub TestDirectCastSpanToValueType()
         Dim snippetContent = "Dim valueType As ValueType = DirectCast(span, ValueType)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 赋值给 ValueType 变量 (直接赋值)
+    ' Assign Span to ValueType variable (direct assignment)
     <TestMethod>
     Public Sub TestSpanToValueTypeAssignmentDirect()
         Dim snippetContent = "Dim valueType As ValueType = span"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 作为 Object 参数传递
+    ' Pass Span as Object parameter
     <TestMethod>
     Public Sub TestSpanAsObjectParameter()
         Dim snippetContent = "TestMethodTakingObject(span)"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 作为 ValueType 参数传递
+    ' Pass Span as ValueType parameter
     <TestMethod>
     Public Sub TestSpanAsValueTypeParameter()
         Dim snippetContent = "TestMethodTakingValueType(span)"
@@ -173,7 +173,7 @@ End Class
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 从函数返回 Span 作为 Object
+    ' Return Span as Object from function
     <TestMethod>
     Public Sub TestReturnSpanAsObject()
         Dim source As FormattableString = $"
@@ -192,7 +192,7 @@ End Class
         AssertThatShouldHaveError(source)
     End Sub
 
-    ' 从函数返回 Span 作为 ValueType
+    ' Return Span as ValueType from function
     <TestMethod>
     Public Sub TestReturnSpanAsValueType()
         Dim source As FormattableString = $"
@@ -211,7 +211,7 @@ End Class
         AssertThatShouldHaveError(source)
     End Sub
 
-    ' ReadOnlySpan 的类似测试
+    ' Similar test for ReadOnlySpan
     <TestMethod>
     Public Sub TestReadOnlySpanToObject()
         Dim source As FormattableString = $"
@@ -222,26 +222,26 @@ Imports System.Runtime.InteropServices
 Class TestClass
     Sub TestMethod()
         Dim readOnlySpan As ReadOnlySpan(Of Integer) = {{1, 2, 3, 4, 5}}
-        Dim obj As Object = readOnlySpan  ' 这也应该触发 BCX31394
+        Dim obj As Object = readOnlySpan  ' This should also trigger BCX31394
     End Sub
 End Class
 "
         AssertThatShouldHaveError(source)
     End Sub
 
-    ' 正确的用法不应该触发
+    ' Correct usage should not trigger
     <TestMethod>
     Public Sub TestCorrectUsage()
-        Dim snippet = "' 直接使用 Span，不进行装箱转换
+        Dim snippet = "' Use Span directly without boxing conversion
 Dim arr As Integer() = {1, 2, 3, 4, 5}
 Dim span As Span(Of Integer) = arr.AsSpan()
 span(0) = 10
 Dim length As Integer = span.Length
-' 这些都是正确的用法，不应该触发"
+' These are all correct usages and should not trigger"
         AssertThatCorrectInMethod(snippet, True)
     End Sub
 
-    ' 没有使用 Span 的正常代码不应该触发
+    ' Normal code without using Span should not trigger
     <TestMethod>
     Public Sub TestNormalCode()
         Dim snippet = "Dim obj As Object = ""hello""

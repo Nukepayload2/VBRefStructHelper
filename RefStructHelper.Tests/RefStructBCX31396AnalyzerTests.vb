@@ -5,13 +5,13 @@ Public Class RefStructBCX31396AnalyzerTests
 
     Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31396"), $"应该检测到 BCX31396 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX31396"), $"Should detect BCX31396 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31396"), $"不应该检测到 BCX31396 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX31396"), $"Should not detect BCX31396 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
@@ -33,7 +33,7 @@ End Class
     End Sub
 
     ' ====================
-    ' Nullable 受限类型测试, 包括能写 As 语句的地方和推断的地方
+    ' Nullable restricted type test, including places where As statements can be written and inferred places
     ' ====================
 
     <TestMethod>
@@ -48,7 +48,7 @@ End Class
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' TODO: 用 AssertThatDiagTriggeredInClass 补充能用 As 的地方：方法参数声明，返回值声明，委托参数声明，Sub New 参数声明，事件参数声明，事件返回值声明，字段声明，属性声明
+    ' TODO: Use AssertThatDiagTriggeredInClass to supplement places where As can be used: method parameter declaration, return value declaration, delegate parameter declaration, Sub New parameter declaration, event parameter declaration, event return value declaration, field declaration, property declaration
 
     <TestMethod>
     Public Sub TestNullableSpanWithInference()
@@ -57,7 +57,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 数组中的受限类型测试
+    ' Restricted types in arrays test
     ' ====================
 
     <TestMethod>
@@ -73,7 +73,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 结构体字段/属性测试
+    ' Struct field/property test
     ' ====================
 
     <TestMethod>
@@ -177,7 +177,7 @@ Imports System.Runtime.InteropServices
     End Sub
 
     ' ====================
-    ' 类字段/属性测试
+    ' Class field/property test
     ' ====================
 
     Private Shared Sub AssertThatDiagTriggeredInClass(snippetContent As String)
@@ -232,13 +232,13 @@ End Class
 
     <TestMethod>
     Public Sub TestSpanStaticLocal()
-        ' Static 会编译成字段加上线程同步代码，属于类的字段
+        ' Static compiles to fields with thread synchronization code, which belongs to class fields
         Dim snippetContent = "Static somethine As Span(Of Integer) = span"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
     ' ====================
-    ' 匿名类型成员测试
+    ' Anonymous type member test
     ' ====================
 
     <TestMethod>
@@ -254,7 +254,7 @@ End Class
     End Sub
 
     ' ====================
-    ' ByRef 参数测试
+    ' ByRef parameter test
     ' ====================
 
     <TestMethod>
@@ -273,10 +273,10 @@ End Class
     End Sub
 
     ' ====================
-    ' 集合测试
+    ' Collection test
     ' ====================
 
-    ' 将 Span 添加到 Object 数组
+    ' Add Span to Object array
     <TestMethod>
     Public Sub TestSpanInObjectArray()
         Dim snippetContent = "Dim objArray As Object() = {span, ""hello"", 42}"
@@ -295,28 +295,28 @@ End Class
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 Object 数组 (42, span)
+    ' Add Span to Object array (42, span)
     <TestMethod>
     Public Sub TestSpanInObjectArray4()
         Dim snippetContent = "Dim objArray = {42, span}"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 Object 数组 (CType(42, Object), span)
+    ' Add Span to Object array (CType(42, Object), span)
     <TestMethod>
     Public Sub TestSpanInObjectArray5()
         Dim snippetContent = "Dim objArray = {CType(42, Object), span}"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 Object 数组 As Object() = {span}
+    ' Add Span to Object array As Object() = {span}
     <TestMethod>
     Public Sub TestSpanInObjectArray6()
         Dim snippetContent = "Dim objArray As Object() = {span}"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 Object 数组 () As Object = {span}
+    ' Add Span to Object array () As Object = {span}
     <TestMethod>
     Public Sub TestSpanInObjectArray7()
         Dim snippetContent = "Dim objArray() As Object = {span}"
@@ -335,14 +335,14 @@ End Class
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 ValueType 数组
+    ' Add Span to ValueType array
     <TestMethod>
     Public Sub TestSpanInValueTypeArray()
         Dim snippetContent = "Dim vtArray As ValueType() = {span, 42}"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 ValueType 数组 (CType(42, ValueType), span)
+    ' Add Span to ValueType array (CType(42, ValueType), span)
     <TestMethod>
     Public Sub TestSpanInValueTypeArray2()
         Dim snippetContent = "Dim vtArray = {CType(42, ValueType), span}"
@@ -367,7 +367,7 @@ End Class
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 ValueType 列表
+    ' Add Span to ValueType list
     <TestMethod>
     Public Sub TestSpanInValueTypeList()
         Dim snippetContent = "Dim vtList1 = New List(Of ValueType) From {span, 42}"
@@ -380,28 +380,28 @@ End Class
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 Object 字典
+    ' Add Span to Object dictionary
     <TestMethod>
     Public Sub TestSpanInObjectDictionary()
         Dim snippetContent = "Dim objDict1 = New Dictionary(Of String, Object) From {{""hello"", span}}"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 Object 字典 (As New Dictionary)
+    ' Add Span to Object dictionary (As New Dictionary)
     <TestMethod>
     Public Sub TestSpanInObjectDictionary2()
         Dim snippetContent = "Dim objDict2 As New Dictionary(Of String, Object) From {{""hello"", span}}"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 ValueType 字典
+    ' Add Span to ValueType dictionary
     <TestMethod>
     Public Sub TestSpanInValueTypeDictionary()
         Dim snippetContent = "Dim vtDict1 = New Dictionary(Of Integer, ValueType) From {{1, span}}"
         AssertThatDiagTriggeredInSub(snippetContent)
     End Sub
 
-    ' 将 Span 添加到 ValueType 字典 (As New Dictionary)
+    ' Add Span to ValueType dictionary (As New Dictionary)
     <TestMethod>
     Public Sub TestSpanInValueTypeDictionary2()
         Dim snippetContent = "Dim vtDict2 As New Dictionary(Of Integer, ValueType) From {{2, span}}"
@@ -409,7 +409,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 返回值测试
+    ' Return value test
     ' ====================
 
     <TestMethod>
@@ -420,7 +420,7 @@ Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
-    Function TestReturn() As Span(Of Integer) ' 应该在这报错，返回类型是受限类型
+    Function TestReturn() As Span(Of Integer) ' Should report error here, return type is restricted type
         Dim arr As Integer() = {{1, 2, 3, 4, 5}}
         Dim span As Span(Of Integer) = arr.AsSpan()
         Return span
@@ -439,7 +439,7 @@ Imports System.Runtime.InteropServices
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
 
-    Shared Narrowing Operator CType(instance As TestClass) As Span(Of Integer) ' 这应该触发 BCX31396
+    Shared Narrowing Operator CType(instance As TestClass) As Span(Of Integer) ' This should trigger BCX31396
         Throw New NotSupportedException
     End Operator
 
@@ -449,7 +449,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 误判测试
+    ' False positive test
     ' ====================
 
     <TestMethod>

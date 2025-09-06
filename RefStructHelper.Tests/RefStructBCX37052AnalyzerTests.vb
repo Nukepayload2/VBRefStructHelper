@@ -5,18 +5,18 @@ Public Class RefStructBCX37052AnalyzerTests
 
     Private Shared Sub AssertThatShouldHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX37052"), $"应该检测到 BCX37052 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsTrue(ContainsDiagnostic(.diagnostics, "BCX37052"), $"Should detect BCX37052 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     Private Shared Sub AssertThatShouldNotHaveError(source As FormattableString)
         With GetSyntaxTreeTextAndDiagnostics(source)
-            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX37052"), $"不应该检测到 BCX37052 诊断。语法树内容:  {vbCrLf}{ .syntaxTreeText}")
+            Assert.IsFalse(ContainsDiagnostic(.diagnostics, "BCX37052"), $"Should not detect BCX37052 diagnostic. Syntax tree content:  {vbCrLf}{ .syntaxTreeText}")
         End With
     End Sub
 
     ' ====================
-    ' Async 方法中声明受限类型变量测试
+    ' Declare restricted type variables in Async methods test
     ' ====================
 
     <TestMethod>
@@ -30,7 +30,7 @@ Imports System.Threading.Tasks
 Class TestClass
     Async Function TestMethod() As Task
         Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim span As Span(Of Integer) = arr.AsSpan()  ' 这应该触发 BCX37052
+        Dim span As Span(Of Integer) = arr.AsSpan()  ' This should trigger BCX37052
         Await Task.Delay(100)
     End Function
 End Class
@@ -49,7 +49,7 @@ Imports System.Threading.Tasks
 Class TestClass
     Async Function TestMethod() As Task
         Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim span = arr.AsSpan()  ' 这应该触发 BCX37052
+        Dim span = arr.AsSpan()  ' This should trigger BCX37052
         Await Task.Delay(100)
     End Function
 End Class
@@ -68,7 +68,7 @@ Imports System.Threading.Tasks
 Class TestClass
     Async Sub TestMethod()
         Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim span = arr.AsSpan()  ' 这应该触发 BCX37052
+        Dim span = arr.AsSpan()  ' This should trigger BCX37052
         Await Task.Delay(100)
     End Sub
 End Class
@@ -77,7 +77,7 @@ End Class
     End Sub
 
     ' ====================
-    ' Iterator 方法中声明受限类型变量测试
+    ' Declare restricted type variables in Iterator methods test
     ' ====================
 
     <TestMethod>
@@ -91,7 +91,7 @@ Imports System.Collections.Generic
 Class TestClass
     Iterator Function TestMethod() As IEnumerable(Of Integer)
         Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim span As Span(Of Integer) = arr.AsSpan()  ' 这应该触发 BCX37052
+        Dim span As Span(Of Integer) = arr.AsSpan()  ' This should trigger BCX37052
         Yield span.Length
     End Function
 End Class
@@ -110,7 +110,7 @@ Imports System.Collections.Generic
 Class TestClass
     Iterator Function TestMethod() As IEnumerable(Of Integer)
         Dim arr As Integer() = {{1, 2, 3, 4, 5}}
-        Dim span = arr.AsSpan()  ' 这应该触发 BCX37052
+        Dim span = arr.AsSpan()  ' This should trigger BCX37052
         Yield span.Length
     End Function
 End Class
@@ -119,7 +119,7 @@ End Class
     End Sub
 
     ' ====================
-    ' 参数/连续调用中的受限类型测试
+    ' Restricted types in parameters/chained calls test
     ' ====================
 
     <TestMethod>
@@ -137,7 +137,7 @@ Class TestClass
     End Function
 End Class
 "
-        ' 参数进入闭包，并非内存安全
+        ' Parameters enter closure, not memory safe
         AssertThatShouldHaveError(source)
     End Sub
 
@@ -157,7 +157,7 @@ Class TestClass
     End Function
 End Class
 "
-        ' 连续调用允许，因为没有产生 Span 闭包
+        ' Chained calls are allowed because no Span closure is generated
         AssertThatShouldNotHaveError(source)
     End Sub
 
@@ -175,7 +175,7 @@ Class TestClass
     End Function
 End Class
 "
-        ' 参数进入闭包，并非内存安全
+        ' Parameters enter closure, not memory safe
         AssertThatShouldHaveError(source)
     End Sub
 
@@ -195,12 +195,12 @@ Class TestClass
     End Function
 End Class
 "
-        ' 连续调用允许，因为没有产生 Span 闭包
+        ' Chained calls are allowed because no Span closure is generated
         AssertThatShouldNotHaveError(source)
     End Sub
 
     ' ====================
-    ' 误伤测试
+    ' False positive test
     ' ====================
 
     <TestMethod>
