@@ -9,8 +9,8 @@
 
 受限类型（在 C# 中称为 `ref struct`）是具有 `System.Runtime.CompilerServices.IsByRefLikeAttribute` 特性的结构体。这些类型：
 - 只能在栈上分配（无法装箱）
-- 不能嵌套 `ByRef`
-- 有关于栈引用的使用限制（`scoped` 和 `unscoped`）以确保内存安全
+- 不能嵌套 `ByRef` 或其他受限类型
+- 有关于栈引用的使用限制（`scoped`/`unscoped` ref）以确保内存安全
 
 ## 当前实现
 
@@ -21,15 +21,15 @@
 - BCX32061: 受限类型作为泛型参数的限制
 - BCX36598: 防止 LINQ 中受限类型的装箱
 - BCX36640: 防止 Lambda 闭包中受限类型的装箱
-- BCX37052: Async/Iterator 状态机中受限类型变量的限制
+- BCX37052: 防止 Async/Iterator 状态机中受限类型的装箱
 - BCX31393: 防止调用受限类型继承的实例方法时装箱
-- 中文和英文诊断消息的本地化支持
+- `en-US` 和 `zh-CN` 诊断消息的本地化支持
 
 ### 未来计划
 - 对于返回值进行受限类型的流分析（`scoped` 和 `unscoped`）
 - 在 `Async` 或 `Iterator` 方法中声明受限类型变量的流分析
 - 识别 `allows ref struct` 约束
-- 更多资源翻译
+- 更多资源翻译（P1: 日语和欧洲语言）
 
 ## 项目结构
 
