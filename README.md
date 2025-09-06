@@ -26,6 +26,7 @@ Restricted types (called `ref struct` in C#) are structures with the `System.Run
 - `en-US` and `zh-CN` Localization support for diagnostic messages
 
 ### Future Plans
+- Detect BCX31394 in `Using` statement
 - Flow analysis for returning restricted types (`scoped` and `unscoped`)
 - Flow analysis for declaring variables of restricted types in `Async` or `Iterator` methods
 - Respect the `allows ref struct` constraint
