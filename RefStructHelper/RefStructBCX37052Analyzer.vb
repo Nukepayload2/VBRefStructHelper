@@ -1,13 +1,12 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-' BCX37052: 编译为 Async/Iterator 状态机的函数，不允许受限类型变量
+' BCX37052: Functions compiled as Async/Iterator state machines do not allow restricted type variables
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class RefStructBCX37052Analyzer
     Inherits DiagnosticAnalyzer
@@ -81,7 +80,7 @@ Public Class RefStructBCX37052Analyzer
 
     Private Sub AnalyzeParameter(parameter As ParameterSyntax, context As SyntaxNodeAnalysisContext,
                                                               semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
+
         If parameter.AsClause IsNot Nothing Then
             Dim parameterType = semanticModel.GetTypeInfo(parameter.AsClause.Type, cancellationToken).Type
             If parameterType IsNot Nothing AndAlso IsRestrictedType(parameterType) Then
@@ -93,7 +92,7 @@ Public Class RefStructBCX37052Analyzer
     Private Function IsAsyncOrIteratorMethod(methodBlock As MethodBlockBaseSyntax) As Boolean
         ' Check method modifiers for Async or Iterator keywords
         Dim methodStatement As MethodStatementSyntax = Nothing
-        
+
         Select Case methodBlock.Kind()
             Case SyntaxKind.FunctionBlock
                 Dim functionBlock = DirectCast(methodBlock, MethodBlockSyntax)
@@ -116,20 +115,20 @@ Public Class RefStructBCX37052Analyzer
 
     Private Sub AnalyzeVariableDeclarator(variableDeclarator As VariableDeclaratorSyntax, context As SyntaxNodeAnalysisContext,
                                                                                   semanticModel As SemanticModel, cancellationToken As CancellationToken)
-        
+
         For Each name In variableDeclarator.Names
             Dim symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken)
             If symbolInfo.Symbol IsNot Nothing AndAlso TypeOf symbolInfo.Symbol Is ILocalSymbol Then
                 Dim localSymbol = DirectCast(symbolInfo.Symbol, ILocalSymbol)
                 Dim variableType = localSymbol.Type
-                
+
                 If variableType IsNot Nothing AndAlso IsRestrictedType(variableType) Then
                     ReportDiagnostic(context, name, variableType)
                     Return ' Only report once per declarator
                 End If
             End If
         Next
-        
+
         ' Also check for inferred types from initializers
         If variableDeclarator.Initializer IsNot Nothing AndAlso variableDeclarator.AsClause Is Nothing Then
             ' This is a Dim x = expression case with type inference
@@ -138,7 +137,7 @@ Public Class RefStructBCX37052Analyzer
                 ReportDiagnostic(context, variableDeclarator.Names.First(), initializerType)
             End If
         End If
-        
+
         ' Check explicit type declarations
         If variableDeclarator.AsClause IsNot Nothing AndAlso variableDeclarator.AsClause.Type IsNot Nothing Then
             Dim explicitType = semanticModel.GetTypeInfo(variableDeclarator.AsClause.Type, cancellationToken).Type

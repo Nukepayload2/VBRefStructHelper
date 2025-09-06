@@ -1,13 +1,10 @@
-Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-' BCX32061: 受限类型不能作为泛型参数
+' BCX32061: Restricted types cannot be used as generic parameters
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class RefStructBCX32061Analyzer
     Inherits DiagnosticAnalyzer

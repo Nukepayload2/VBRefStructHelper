@@ -1,13 +1,12 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-' BCX36598: 防止 LINQ 范围变量声明或者闭包捕获受限类型
+' BCX36598: Prevent LINQ range variable declarations or closure captures of restricted types
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class RefStructBCX36598Analyzer
     Inherits DiagnosticAnalyzer

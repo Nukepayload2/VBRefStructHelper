@@ -23,7 +23,7 @@ Module SymbolHelper
             Return cachedValue.Value
         End If
 
-        ' Early exit for common non-restricted types
+        ' Early exit for common non-restricted types and well-known restricted types
         If typeSymbol.SpecialType <> SpecialType.None Then
             _restrictedTypeCache.GetOrCreateValue(typeSymbol).Value = False
             Return False

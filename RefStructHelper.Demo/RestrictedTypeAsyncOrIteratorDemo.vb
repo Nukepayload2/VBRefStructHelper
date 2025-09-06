@@ -1,6 +1,6 @@
 <Obsolete("Suppress default ref struct obsolete errors")>
 Public Class RestrictedTypeAsyncOrIteratorDemo
-    ' 演示Async/Iterator方法中受限类型的使用限制 (BCX37052)
+    ' Demonstrate usage restrictions of restricted types in Async/Iterator methods (BCX37052)
 
     ' Async方法中的错误使用
     Async Function TestMethod() As Task

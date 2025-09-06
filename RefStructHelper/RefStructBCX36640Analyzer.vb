@@ -1,13 +1,12 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-' BCX36640: 防止 Lambda 闭包捕获受限类型
+' BCX36640: Prevent Lambda closure captures of restricted types
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class RefStructBCX36640Analyzer
     Inherits DiagnosticAnalyzer
@@ -167,7 +166,7 @@ Public Class RefStructBCX36640Analyzer
 
     Private Function IsFromOuterScope(symbol As ISymbol, lambdaNode As LambdaExpressionSyntax, semanticModel As SemanticModel) As Boolean
         If symbol Is Nothing Then Return False
-        
+
         ' For local variables, check if they are declared outside the lambda
         If TypeOf symbol Is ILocalSymbol Then
             Dim localSymbol = DirectCast(symbol, ILocalSymbol)
@@ -182,12 +181,12 @@ Public Class RefStructBCX36640Analyzer
             Next
             Return False
         End If
-        
+
         ' For parameters, check if they belong to the containing method (not lambda parameters)
         If TypeOf symbol Is IParameterSymbol Then
             Dim parameterSymbol = DirectCast(symbol, IParameterSymbol)
             Dim containingMethod = parameterSymbol.ContainingSymbol
-            
+
             ' Get the lambda's parent method
             Dim parentMethod = GetContainingMethod(lambdaNode)
             If parentMethod IsNot Nothing Then
@@ -196,18 +195,18 @@ Public Class RefStructBCX36640Analyzer
                 Return SymbolEqualityComparer.Default.Equals(containingMethod, parentMethodSymbol)
             End If
         End If
-        
+
         ' For fields and properties, assume they could be closure captures
         If symbol.Kind = SymbolKind.Field OrElse symbol.Kind = SymbolKind.Property Then
             Return True
         End If
-        
+
         Return False
     End Function
 
     Private Function IsClosureCaptureExpression(expression As ExpressionSyntax, lambdaNode As LambdaExpressionSyntax,
                                               semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-        
+
         If TypeOf expression Is IdentifierNameSyntax Then
             Dim identifier = DirectCast(expression, IdentifierNameSyntax)
             Dim symbolInfo = semanticModel.GetSymbolInfo(identifier, cancellationToken)
@@ -215,7 +214,7 @@ Public Class RefStructBCX36640Analyzer
                 Return IsFromOuterScope(symbolInfo.Symbol, lambdaNode, semanticModel)
             End If
         End If
-        
+
         Return False
     End Function
 

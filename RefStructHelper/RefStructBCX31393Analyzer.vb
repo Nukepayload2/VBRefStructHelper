@@ -1,13 +1,10 @@
-Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-' BCX31393: 防止调用受限类型继承的实例方法装箱受限类型
+' BCX31393: Prevent boxing of restricted types when calling inherited instance methods
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class RefStructBCX31393Analyzer
     Inherits DiagnosticAnalyzer

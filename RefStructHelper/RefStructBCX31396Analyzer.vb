@@ -1,13 +1,10 @@
-Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-' 一些工具在 SymbolHelper
+' Some utilities are in SymbolHelper
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class RefStructBCX31396Analyzer
     Inherits DiagnosticAnalyzer

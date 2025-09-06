@@ -9,7 +9,7 @@ This analyzer detects various operations that could throw [InvalidProgramExcepti
 
 Restricted types (called `ref struct` in C#) are structures with the `System.Runtime.CompilerServices.IsByRefLikeAttribute` attribute. These types:
 - Can only be allocated on the stack (cannot be boxed)
-- Cannot nest `ByRef`
+- Cannot nest `ByRef` or other restricted types
 - Have usage restrictions related to stack references (scoped/unscoped ref) to ensure memory safety
 
 ## Current Implementation
@@ -21,7 +21,7 @@ Restricted types (called `ref struct` in C#) are structures with the `System.Run
 - BCX32061: Restrictions on using restricted types as generic parameters
 - BCX36598: Prevent boxing of restricted types in LINQ
 - BCX36640: Prevent boxing of restricted types in Lambda closures
-- BCX37052: Restrictions on restricted type variables in Async/Iterator state machines
+- BCX37052: Prevent boxing of restricted types in Async/Iterator state machines
 - BCX31393: Prevent boxing when calling instance methods inherited by restricted types
 - `en-US` and `zh-CN` Localization support for diagnostic messages
 
@@ -29,7 +29,7 @@ Restricted types (called `ref struct` in C#) are structures with the `System.Run
 - Flow analysis for returning restricted types (`scoped` and `unscoped`)
 - Flow analysis for declaring variables of restricted types in `Async` or `Iterator` methods
 - Respect the `allows ref struct` constraint
-- More resource translations
+- More resource translations (P1: Japanese and languages of Europe)
 
 ## Project Structure
 
