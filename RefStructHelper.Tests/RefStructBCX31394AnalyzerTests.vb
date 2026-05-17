@@ -41,6 +41,21 @@ Class TestClass
         Public Property SomeValue As Object
     End Class
 
+    ' Normal IDisposable class for testing Using statements
+    Private Class NormalDisposable
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+
+    ' ref struct that implements IDisposable for testing Using statements
+    <System.Runtime.CompilerServices.IsByRefLike>
+    Private Structure DisposableRefStruct
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Structure
+
     Private Event SomeEvent(arg As Object)
 
     Sub TestMethod()
@@ -259,6 +274,21 @@ Imports System.Runtime.InteropServices
 
 <Obsolete(""Suppress default ref struct obsolete errors"")>
 Class TestClass
+    ' Normal IDisposable class for testing Using statements
+    Private Class NormalDisposable
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+
+    ' ref struct that implements IDisposable for testing Using statements
+    <System.Runtime.CompilerServices.IsByRefLike>
+    Private Structure DisposableRefStruct
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Structure
+
     Sub TestMethod()
 {snippet}
     End Sub
@@ -269,6 +299,21 @@ End Class
 Imports System
 
 Class TestClass
+    ' Normal IDisposable class for testing Using statements
+    Private Class NormalDisposable
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+
+    ' ref struct that implements IDisposable for testing Using statements
+    <System.Runtime.CompilerServices.IsByRefLike>
+    Private Structure DisposableRefStruct
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Structure
+
     Sub TestMethod()
 {snippet}
     End Sub
@@ -276,6 +321,78 @@ End Class
 "
         End If
         AssertThatShouldNotHaveError(source)
+    End Sub
+
+    ' Using statement tests - should trigger errors
+
+    <TestMethod>
+    Public Sub TestDisposableRefStructInUsingDeclaration()
+        Dim snippetContent = "Using disposable = New DisposableRefStruct()"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestMultipleRefStructInUsingDeclaration()
+        Dim snippetContent = "Using a = New DisposableRefStruct(), b = New DisposableRefStruct()"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestRefStructWithExistingVariable()
+        Dim snippetContent = "Dim existingRef As DisposableRefStruct
+Using existingRef"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestMixedDeclarationAndExisting()
+        Dim snippetContent = "Dim existingRef As DisposableRefStruct
+Using a = New DisposableRefStruct(), existingRef"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestMixedNormalAndRefStruct()
+        Dim snippetContent = "Using normal = New NormalDisposable(), ref = New DisposableRefStruct()"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestExplicitTypeRefStructInUsing()
+        Dim snippetContent = "Using disposable As DisposableRefStruct = New DisposableRefStruct()"
+        AssertThatDiagTriggeredInSub(snippetContent)
+    End Sub
+
+    ' Using statement tests - should be allowed
+
+    <TestMethod>
+    Public Sub TestNormalIDisposableInUsingDeclaration()
+        Dim snippetContent = "Using normal = New NormalDisposable()
+End Using"
+        AssertThatCorrectInMethod(snippetContent, True)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestMultipleNormalIDisposable()
+        Dim snippetContent = "Using a = New NormalDisposable(), b = New NormalDisposable()
+End Using"
+        AssertThatCorrectInMethod(snippetContent, True)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestRefStructInsideUsingBlock()
+        Dim snippetContent = "Using normal = New NormalDisposable()
+    Dim disposable = New DisposableRefStruct()
+End Using"
+        AssertThatCorrectInMethod(snippetContent, True)
+    End Sub
+
+    <TestMethod>
+    Public Sub TestRefStructInsideUsingBlockWithoutRuntimeInterop()
+        Dim snippetContent = "Using normal = New NormalDisposable()
+    Dim disposable = New DisposableRefStruct()
+End Using"
+        AssertThatCorrectInMethod(snippetContent, False)
     End Sub
 
 End Class

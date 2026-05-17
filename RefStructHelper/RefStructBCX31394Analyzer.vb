@@ -45,6 +45,7 @@ Public Class RefStructBCX31394Analyzer
         context.RegisterSyntaxNodeAction(AddressOf AnalyzeObjectCreation, SyntaxKind.ObjectCreationExpression)
         context.RegisterSyntaxNodeAction(AddressOf AnalyzeRaiseEvent, SyntaxKind.RaiseEventStatement)
         context.RegisterSyntaxNodeAction(AddressOf AnalyzeNamedFieldInitializer, SyntaxKind.NamedFieldInitializer)
+        context.RegisterSyntaxNodeAction(AddressOf AnalyzeUsingStatement, SyntaxKind.UsingStatement)
     End Sub
 
     Private Sub AnalyzeRaiseEvent(context As SyntaxNodeAnalysisContext)
@@ -192,6 +193,7 @@ Public Class RefStructBCX31394Analyzer
 
         ' Try to get the return type of the containing method
         Dim containingSymbol = semanticModel.GetEnclosingSymbol(returnNode.SpanStart, cancellationToken)
+        If containingSymbol Is Nothing Then Return
         Dim methodSymbol As IMethodSymbol = TryCast(containingSymbol, IMethodSymbol)
         If methodSymbol Is Nothing Then
             methodSymbol = TryCast(containingSymbol.ContainingSymbol, IMethodSymbol)
@@ -298,7 +300,53 @@ Public Class RefStructBCX31394Analyzer
         If fieldSymbol IsNot Nothing Then
             targetType = If(TryCast(fieldSymbol, IFieldSymbol)?.Type, TryCast(fieldSymbol, IPropertySymbol)?.Type)
         End If
-        Dim expressionSymbol = TryCast(semanticModel.GetSymbolInfo(fieldInitNode.Expression, cancellationToken).Symbol, ILocalSymbol)
-        CheckRestrictedConversion(expressionSymbol.Type, targetType, fieldInitNode.Expression, context)
+        Dim expressionType = semanticModel.GetTypeInfo(fieldInitNode.Expression, cancellationToken).Type
+        CheckRestrictedConversion(expressionType, targetType, fieldInitNode.Expression, context)
+    End Sub
+
+    Private Sub AnalyzeUsingStatement(context As SyntaxNodeAnalysisContext)
+        Dim usingNode = DirectCast(context.Node, UsingStatementSyntax)
+        Dim semanticModel = context.SemanticModel
+        Dim cancellationToken = context.CancellationToken
+
+        ' Check each variable in the Using statement
+        For Each variable In usingNode.Variables
+            ' Get the type of the variable
+            Dim variableType As ITypeSymbol = Nothing
+            Dim locationToReport As SyntaxNode = Nothing
+
+            If variable.AsClause IsNot Nothing Then
+                ' Variable has explicit type declaration
+                variableType = semanticModel.GetTypeInfo(variable.AsClause.Type, cancellationToken).Type
+                locationToReport = variable.AsClause.Type
+            ElseIf variable.Initializer IsNot Nothing Then
+                ' Infer type from initializer
+                variableType = semanticModel.GetTypeInfo(variable.Initializer.Value, cancellationToken).Type
+                locationToReport = variable.Initializer.Value
+            Else
+                ' Variable without initialization - get the symbol from name
+                Dim variableSymbol = semanticModel.GetSymbolInfo(variable.Names(0), cancellationToken).Symbol
+                variableType = TryCast(variableSymbol, ILocalSymbol)?.Type
+                locationToReport = variable.Names(0)
+            End If
+
+            ' Check if this is a restricted type in Using statement
+            If variableType IsNot Nothing AndAlso IsRestrictedType(variableType) Then
+                Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, locationToReport.GetLocation(), variableType.Name)
+                context.ReportDiagnostic(diagnostic)
+            End If
+        Next
+
+        ' Handle Using with existing variable (e.g., "Using existingRef")
+        ' In this case, Variables is empty and the identifier is a direct child expression
+        If usingNode.Variables.Count = 0 Then
+            For Each child In usingNode.ChildNodes()
+                Dim childType = semanticModel.GetTypeInfo(child, cancellationToken).Type
+                If childType IsNot Nothing AndAlso IsRestrictedType(childType) Then
+                    Dim diagnostic As Diagnostic = Diagnostic.Create(Rule, child.GetLocation(), childType.Name)
+                    context.ReportDiagnostic(diagnostic)
+                End If
+            Next
+        End If
     End Sub
 End Class

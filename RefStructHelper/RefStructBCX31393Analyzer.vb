@@ -48,6 +48,7 @@ Public Class RefStructBCX31393Analyzer
         Dim cancellationToken = context.CancellationToken
 
         ' Check if the expression is a restricted type
+        If memberAccess.Expression Is Nothing Then Return
         Dim expressionType = semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type
         If expressionType Is Nothing OrElse Not IsRestrictedType(expressionType) Then
             Return
@@ -88,6 +89,7 @@ Public Class RefStructBCX31393Analyzer
 
                             If TypeOf argument Is SimpleArgumentSyntax Then
                                 Dim simpleArg = DirectCast(argument, SimpleArgumentSyntax)
+                                If simpleArg.Expression Is Nothing Then Continue For
                                 Dim argType = semanticModel.GetTypeInfo(simpleArg.Expression, cancellationToken).Type
                                 If argType IsNot Nothing AndAlso IsRestrictedType(argType) Then
                                     ReportDiagnostic(context, simpleArg.Expression, argType)
@@ -102,6 +104,7 @@ Public Class RefStructBCX31393Analyzer
         ' Also check member access invocations
         If TypeOf invocation.Expression Is MemberAccessExpressionSyntax Then
             Dim memberAccess = DirectCast(invocation.Expression, MemberAccessExpressionSyntax)
+            If memberAccess.Expression Is Nothing Then Return
             Dim expressionType = semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type
 
             If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType) Then
@@ -121,6 +124,7 @@ Public Class RefStructBCX31393Analyzer
         For Each content In interpolation.Contents
             If TypeOf content Is InterpolationSyntax Then
                 Dim interp = DirectCast(content, InterpolationSyntax)
+                If interp.Expression Is Nothing Then Continue For
                 Dim expressionType = semanticModel.GetTypeInfo(interp.Expression, cancellationToken).Type
 
                 If expressionType IsNot Nothing AndAlso IsRestrictedType(expressionType) Then
