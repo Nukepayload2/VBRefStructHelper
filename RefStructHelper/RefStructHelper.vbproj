@@ -8,11 +8,11 @@
     <AssemblyName>Nukepayload2.CodeAnalysis.ExtendRestrictedTypes</AssemblyName>
     
     <!-- NuGet Package Properties -->
-    <PackageVersion>1.0.2-beta</PackageVersion>
+    <PackageVersion>1.0.3-beta</PackageVersion>
     <Authors>Nukepayload2</Authors>
     <Company>Nukepayload2</Company>
     <Product>VB.NET Ref Struct Helper</Product>
-    <Description>Roslyn analyzers for VB.NET ref struct (ByRef-like struct) boxing detection and prevention. Helps identify and prevent accidental boxing of ref structs that should remain on the stack. Requires Visual Basic 17.13 or later.</Description>
+    <Description>Roslyn analyzers for VB.NET ref struct (&lt;IsByRefLike&gt; Structure) boxing detection and prevention. Helps identify and prevent accidental boxing of ref structs that should remain on the stack. Requires Visual Basic 17.13 or later.</Description>
     <Copyright>Copyright © Nukepayload2 2025</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Nukepayload2/VBRefStructHelper</PackageProjectUrl>
